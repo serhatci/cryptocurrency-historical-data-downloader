@@ -1,3 +1,9 @@
+"""Provides classes of crypto exchanges.
+
+List of Classes:
+    Bitpanda
+"""
+
 import time
 import arrow  # Date/time management library
 import requests
