@@ -1,16 +1,35 @@
-"""Provides an interface for creating crypto-exchange classes.
+"""Provides a base class for creating crypto-exchange classes.
     
     List of classes:
-        ExchangeInterface
+        Exchange
     """
 from abc import ABC, abstractmethod
-from operator import lshift
-from requests.api import options
 
 
-class ExchangeInterface(ABC):
-    """An interface to create crypto-exchange classes
+class Exchange(ABC):
+    """An abstract base class to create crypto-exchange classes.
     """
+
+    __instance = None
+
+    def __new__(cls):
+        """Creates only a single instance of class.
+
+        Singleton design pattern.
+
+        Raises:
+            Exception: occurs when a second instance
+                       is tried to be created
+
+        Returns:
+            object: crypto exchage object
+        """
+
+        if not cls.__instance:
+            cls.__instance = super(Exchange, cls).__new__(cls)
+            return cls.__instance
+        else:
+            raise Exception(f'{cls.__instance.name} was already created!..')
 
     @property
     @abstractmethod
@@ -43,16 +62,10 @@ class ExchangeInterface(ABC):
     def max_API_requests(self):
         r"""Maximum allowable number of API requests and period.
 
-<<<<<<< HEAD
         Exchanges have request limits for a period or limited
         number of request. These limits must be defined by this 
         variable in a list with predefined format such as
         [limit number,'minutes/days/weeks/counts']
-=======
-        Exchanges have request limits for a period. These 
-        limits are defined by this variable in a list 
-        with predefined format [number,'minutes/days/weeks/counts']
->>>>>>> de65c34dc20183b2cf03204f2b348dc8d91c8c7f
 
         Example [4,'weeks']
         """
