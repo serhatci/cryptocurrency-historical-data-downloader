@@ -7,10 +7,10 @@ List of Classes:
 import time
 import arrow  # Date/time management library
 import requests
-from exchange_interface import ExchangeInterface
+from exchange_base_cls import Exchange
 
 
-class Bitpanda(ExchangeInterface):
+class Bitpanda(Exchange):
     """Creates bitpanda crypto-exchange object
     """
 
