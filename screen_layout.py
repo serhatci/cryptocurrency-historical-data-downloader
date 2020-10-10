@@ -117,7 +117,7 @@ class Layout:
                                             pad=None,
                                             key='-calendar-',
                                             format=('%d-%m-%Y'))],
-                         [sg.Button('ADD', key='-add-')]]
+                         [sg.Button('ADD', key='-add_coin-')]]
 
         frame2_layout = [[sg.Text('Location:'),
                           sg.Text('DEFAULT LOCATION',
