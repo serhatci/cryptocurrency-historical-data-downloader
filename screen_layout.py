@@ -7,13 +7,13 @@ import PySimpleGUI as sg   # GUI framework library
 
 
 class Layout:
-    """Provide a screen layout for the application.
+    """Provides a screen layout for the application.
 
-    Screen layout column design looks like below:
+    Screen layout design looks like below:
 
     |  col1 |              col2              |
     |       |                                |
-    |       | -------------------------------|
+    |       |--------------------------------|
     |       | col2_bot_left | col2_bot_right |
     |       |               |                |
 
@@ -121,7 +121,8 @@ class Layout:
 
         frame2_layout = [[sg.Text('Location:'),
                           sg.Text('DEFAULT LOCATION',
-                                  size=(20, 1))],
+                                  size=(20, 1),
+                                  key='-location-')],
                          [sg.FileBrowse()]]
 
         return [[sg.Button('DELETE',
