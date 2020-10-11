@@ -36,39 +36,32 @@ def run(app):
         if event == '-exchanges_table-':
             col_num = values['-exchanges_table-'][0]
             app.selected_exc = app.exc_list[col_num]
-            app.show_exc_info(app.selected_exc)
-            app.refresh_coin_table(window, app.selected_exc)
+            app.warning.exc_info(window, app.selected_exc)
 
         # User clicks -add- button and a new coin is added
         if event == '-add_coin-':
             if not values['-exchanges_table-']:
-                app.warning_select_exc(window)
+                app.warning.select_exc(window)
             else:
                 if not values['-coin_name-'] and values['-abbr-']:
-                    app.warning_fill_inputs(window)
+                    app.warning.missing_info(window)
                 else:
                     app.add_coin_to(app.selected_exc)
-                    app.refresh_coin_table(window, app.selected_exc)
-                    app.warning_coin_added(window)
 
         # User clicks update button and data starts to download
         if event == '-update_coin-':
             if not values['-coins_table-']:
-                app.warning_select_coin(window)
+                app.warning.select_coin(window)
+
             else:
                 col_num = values['-coins_table-'][0]
                 app.selected_coin = app.selected_exc.coin_list[col_num]
-                app.upload_coin(app.selected_coin)
-                app.refresh_coin_table(window, app.selected_exc)
-                app.warning_update_coin(window)
+                app.download_data(app.selected_coin)
 
         # User clicks update all button and all data starts to download
         if event == '-update_all-':
             for coin in app.selected_exc.coin_list:
-                app.upload_coin(coin)
-
-            app.refresh_coin_table(window, app.selected_exc)
-            app.warning_update_all(window)
+                app.download_data(coin)
 
         # User clicks delete button and coin data is deleted
         if event == '-delete_coin-':
@@ -78,8 +71,6 @@ def run(app):
                 col_num = values['-coins_table-'][0]
                 app.selected_coin = app.selected_exc.coin_list[col_num]
                 app.delete_coin(app.selected_coin)
-                app.refresh_coin_table(window, app.selected_exc)
-                app.warning_update_all(window)
 
     window.close()
 
