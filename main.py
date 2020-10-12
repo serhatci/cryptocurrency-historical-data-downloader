@@ -76,5 +76,5 @@ def run(app):
 
 
 if __name__ == "__main__":
-    app = Controller(Model(), View())
+    app = Controller()
     run(app)
