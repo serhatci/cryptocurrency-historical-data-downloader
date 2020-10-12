@@ -46,7 +46,7 @@ def run(app):
                 if not values['-coin_name-'] and values['-abbr-']:
                     app.warning.missing_info(window)
                 else:
-                    app.add_coin_to(app.selected_exc)
+                    app.add_coin(window)
 
         # User clicks update button and data starts to download
         if event == '-update_coin-':
@@ -56,12 +56,12 @@ def run(app):
             else:
                 col_num = values['-coins_table-'][0]
                 app.selected_coin = app.selected_exc.coin_list[col_num]
-                app.download_data(app.selected_coin)
+                app.download_data(window, app.selected_coin)
 
         # User clicks update all button and all data starts to download
         if event == '-update_all-':
             for coin in app.selected_exc.coin_list:
-                app.download_data(coin)
+                app.download_data(window, coin)
 
         # User clicks delete button and coin data is deleted
         if event == '-delete_coin-':
@@ -70,7 +70,7 @@ def run(app):
             else:
                 col_num = values['-coins_table-'][0]
                 app.selected_coin = app.selected_exc.coin_list[col_num]
-                app.delete_coin(app.selected_coin)
+                app.delete_coin(window, app.selected_coin)
 
     window.close()
 
