@@ -45,7 +45,7 @@ def run(app):
             if not values['-exchanges_table-']:
                 app.display('*Select Exchange')
             else:
-                if values['-coin_name-'] == '' and values['-abbr-'] == '':
+                if values['-coin_name-'] == '' or values['-abbr-'] == '':
                     app.display('*Missing Info')
                 else:
                     coin_name = values['-coin_name-']
