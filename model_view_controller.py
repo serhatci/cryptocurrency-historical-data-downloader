@@ -55,7 +55,12 @@ class Model:
 
 class View:
     """ View class of MVC design.
+
+    attr:
+        window (obj): Pysimplegui window object
     """
+
+    window = None
 
     def display(self, msg, color):
         """Displays messages on action panel in the screen.
