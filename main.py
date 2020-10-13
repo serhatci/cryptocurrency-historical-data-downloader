@@ -5,26 +5,29 @@ from exchange_base_cls import Exchange
 from exchange_classes import *
 
 
-def run(app):
+def run():
     """Executes the application.
-
-    Args:
-        app (object): controller object of MVC
     """
+    # instantiate application object
+    app = Controller(Model(), View())
 
-    # Initializes all exchange classes in exchange_classes.py
-    app.exc_list = [cls() for cls in Exchange.__subclasses__()]
+    # Instantiate all exchange classes defined in exchange_classes.py
+    exc_list = [cls() for cls in Exchange.__subclasses__()]
 
     # Creates the start screen layout
-    layout = Layout.create(app.exc_list)
+    layout = Layout.create(exc_list)
 
-    # Initializes start screen attaches it to app.view
+    # Initializes start screen and attaches it to app.view object
     app.view.window = sg.Window('Crypto-exchanges Data Downloader',
                                 layout,
                                 size=(1000, 500),
                                 finalize=True)
 
-    # Listens the screen and collect user inputs
+    # Initial states of user selections
+    selected_exc = None
+    selected_coin = None
+
+    # Listens the screen and collects user inputs
     while True:
         event, values = app.view.window.read()
 
@@ -32,17 +35,24 @@ def run(app):
         if event == sg.WIN_CLOSED or event == 'Cancel':
             break
 
-        # Displays info when a listed exchange was clicked
+        # Displays coins belong to the selected exchange
+        # Displays exchange info when it is clicked
         if event == '-exchanges_table-':
             col_num = values['-exchanges_table-'][0]
-            app.selected_exc = app.exc_list[col_num]
-            msg = f'{app.selected_exc.name}\n-----\n' \
-                f'{app.selected_exc.website}'
+            selected_exc = exc_list[col_num]
+            app.refresh_coin_table(selected_exc)
+            selected_exc.coins = values['-coins_table-']
+            msg = f'{selected_exc.name}\n-----\n' \
+                f'{selected_exc.website}'
             app.display(msg, 'green')
+
+        if event == '-coin_table':
+            col_num = values['-coins_table-'][0]
+            selected_coin = selected_exc.coins[col_num]
 
         # User clicks -add- button and a new coin is added
         if event == '-add_coin-':
-            if not values['-exchanges_table-']:
+            if not selected_exc:
                 app.display('*Select Exchange')
             else:
                 if values['-coin_name-'] == '' or values['-abbr-'] == '':
@@ -53,35 +63,37 @@ def run(app):
                     start_date = app.view.window['-start_date-'].get()
                     start_hour = app.view.window['-start_hour-'].get()
                     file_directory = app.view.window['-directory-'].get()
-                    app.add_coin(coin_name, abbr, start_date,
-                                 start_hour, file_directory)
+
+                    app.add_coin(selected_exc, coin_name, abbr,
+                                 start_date, start_hour, file_directory)
 
         # User clicks update button and data starts to download
         if event == '-update_coin-':
-            if not values['-coins_table-']:
+            if not selected_coin:
                 app.display('*Select Coin')
             else:
-                col_num = values['-coins_table-'][0]
-                app.selected_coin = app.selected_exc.coin_list[col_num]
-                app.download_data(app.selected_coin)
+                col_num = values['-coin_table-'][0]
+                selected_coin = selected_exc.coins[col_num]
+                app.download_data(selected_coin)
 
         # User clicks update all button and all data starts to download
         if event == '-update_all-':
-            for coin in app.selected_exc.coin_list:
+            for coin in selected_exc.coins:
                 app.download_data(coin)
+                app.refresh_coin_table(selected_exc)
 
         # User clicks delete button and coin data is deleted
         if event == '-delete_coin-':
-            if not values['-coins_table-']:
+            if not selected_coin:
                 app.display('*Select Coin')
             else:
                 col_num = values['-coins_table-'][0]
-                app.selected_coin = app.selected_exc.coin_list[col_num]
-                app.delete_coin(app.selected_coin)
+                selected_coin = selected_exc.coins[col_num]
+                app.delete_coin(selected_coin)
+                app.refresh_coin_table(selected_exc)
 
     app.view.window.close()
 
 
 if __name__ == "__main__":
-    app = Controller(Model(), View())
-    run(app)
+    run()
