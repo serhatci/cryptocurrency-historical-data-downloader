@@ -45,14 +45,16 @@ def run(app):
             if not values['-exchanges_table-']:
                 app.display('*Select Exchange')
             else:
-                if not values['-coin_name-'] and values['-abbr-']:
+                if values['-coin_name-'] == '' and values['-abbr-'] == '':
                     app.display('*Missing Info')
                 else:
                     coin_name = values['-coin_name-']
                     abbr = values['-abbr-']
-                    start_date = values['-start_date-']
-                    start_hour = values['-start_hour-']
-                    app.add_coin(coin_name, abbr, start_date, start_hour)
+                    start_date = app.view.window['-start_date-'].get()
+                    start_hour = app.view.window['-start_hour-'].get()
+                    file_directory = app.view.window['-directory-'].get()
+                    app.add_coin(coin_name, abbr, start_date,
+                                 start_hour, file_directory)
 
         # User clicks update button and data starts to download
         if event == '-update_coin-':
