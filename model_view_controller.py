@@ -11,9 +11,15 @@ class Controller():
         """
         self.model = model
         self.view = view
-    pass
 
-    def add_coin():
+    def refresh_coin_table(self, selected_exc):
+        pass
+
+    def add_coin(self, selected_exc, coin_name, abbr,
+                 start_date, start_hour, file_directory):
+
+        self.model.add_coin()
+
         pass
 
     def delete_coin():
