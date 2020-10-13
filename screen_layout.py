@@ -119,11 +119,11 @@ class Layout:
                                             format=('%d-%m-%Y'))],
                          [sg.Button('ADD', key='-add_coin-')]]
 
-        frame2_layout = [[sg.Text('Location:'),
-                          sg.Text('DEFAULT LOCATION',
-                                  size=(20, 1),
-                                  key='-location-')],
-                         [sg.FileBrowse()]]
+        frame2_layout = [[sg.Text('Directory:'),
+                          sg.FolderBrowse(target='-directory-')],
+                         [sg.Text('Select saving folder!..',
+                                  size=(40, 4),
+                                  key='-directory-')]]
 
         return [[sg.Button('DELETE',
                            pad=((4, 14), (8, 1)),
