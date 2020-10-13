@@ -55,17 +55,23 @@ def run():
             if not selected_exc:
                 app.display('*Select Exchange')
             else:
-                if values['-coin_name-'] == '' or values['-abbr-'] == '':
+                if (
+                    values['-coin_name-'] == '' or
+                    values['-abbr-'] == '' or
+                    app.view.window['-folder-'].get() == 'C:\..'
+                ):
                     app.display('*Missing Info')
                 else:
                     coin_name = values['-coin_name-']
                     abbr = values['-abbr-']
                     start_date = app.view.window['-start_date-'].get()
                     start_hour = app.view.window['-start_hour-'].get()
-                    file_directory = app.view.window['-directory-'].get()
+                    save_folder = app.view.window['-folder-'].get()
 
                     app.add_coin(selected_exc, coin_name, abbr,
-                                 start_date, start_hour, file_directory)
+                                 start_date, start_hour, save_folder)
+
+                    app.refresh_coin_table(selected_exc)
 
         # User clicks update button and data starts to download
         if event == '-update_coin-':
