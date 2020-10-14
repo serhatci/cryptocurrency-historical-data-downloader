@@ -11,8 +11,8 @@ class Config:
 
         self.__config_file_check()
         self.__config.read('config.ini')
-        self.platform = platform
-        self.folder_path = self.__config['DEFAULT']['SaveFolder']
+        self._platform = platform
+        self._folder_path = self.__config['DEFAULT']['SaveFolder']
 
     @classmethod
     def __config_file_check(cls):
