@@ -76,7 +76,7 @@ class Layout:
         """
 
         return [[sg.Text('Select Cryptocurrency')],
-                [sg.Table([['', '', '', '']],
+                [sg.Table([['Bitcoin', 'BTC', '10/10/2020', '01/10/2020']],
                           headings=[' Cryptocurrency ',
                                     ' Abbreviation ',
                                     '      Last Update      ',
@@ -84,7 +84,8 @@ class Layout:
                           justification='left',
                           row_height=30,
                           num_rows=5,
-                          key='-coins_table-')],
+                          key='-coins_table-',
+                          enable_events=True)],
                 [sg.Column(cls.__col2_bot_left_layout(),
                            vertical_alignment='top'),
                  sg.Column(cls.__col2_bot_right_layout())]]
