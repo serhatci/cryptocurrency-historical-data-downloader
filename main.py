@@ -46,9 +46,12 @@ def run():
                 f'{selected_exc.website}'
             app.display(msg, 'green')
 
-        if event == '-coin_table':
-            col_num = values['-coins_table-'][0]
-            selected_coin = selected_exc.coins[col_num]
+        if event == '-coins_table-':
+            if not selected_exc:
+                app.display('*Select Exchange')
+            else:
+                col_num = values['-coins_table-'][0]
+                selected_coin = selected_exc.coins[col_num]
 
         # User clicks -add- button and a new coin is added
         if event == '-add_coin-':
