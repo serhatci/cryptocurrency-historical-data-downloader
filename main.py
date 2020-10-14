@@ -41,7 +41,7 @@ def run():
             col_num = values['-exchanges_table-'][0]
             selected_exc = exc_list[col_num]
             app.update_coin_tbl(selected_exc)
-            selected_exc.coins = values['-coins_table-']
+            selected_exc.coins = app.view.window['-coins_table-'].Get()
             msg = f'{selected_exc.name}\n-----\n' \
                 f'{selected_exc.website}'
             app.display(msg, 'green')
