@@ -14,8 +14,11 @@ def run():
     # Instantiate all exchange classes defined in exchange_classes.py
     exc_list = [cls() for cls in Exchange.__subclasses__()]
 
+    # Get savefolder location
+    default_save_folder = app.get_default_folder()
+
     # Creates the start screen layout
-    layout = Layout.create(exc_list)
+    layout = Layout.create(exc_list, default_save_folder)
 
     # Initializes start screen and attaches it to app.view object
     app.view.window = sg.Window('Crypto-exchanges Data Downloader',
