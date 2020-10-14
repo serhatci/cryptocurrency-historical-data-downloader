@@ -40,7 +40,7 @@ def run():
         if event == '-exchanges_table-':
             col_num = values['-exchanges_table-'][0]
             selected_exc = exc_list[col_num]
-            app.refresh_coin_table(selected_exc)
+            app.update_coin_tbl(selected_exc)
             selected_exc.coins = values['-coins_table-']
             msg = f'{selected_exc.name}\n-----\n' \
                 f'{selected_exc.website}'
@@ -71,7 +71,7 @@ def run():
                     app.add_coin(selected_exc, coin_name, abbr,
                                  start_date, start_hour, save_folder)
 
-                    app.refresh_coin_table(selected_exc)
+                    app.update_coin_tbl(selected_exc)
 
         # User clicks update button and data starts to download
         if event == '-update_coin-':
@@ -86,7 +86,7 @@ def run():
         if event == '-update_all-':
             for coin in selected_exc.coins:
                 app.download_data(coin)
-                app.refresh_coin_table(selected_exc)
+                app.update_coin_tbl(selected_exc)
 
         # User clicks delete button and coin data is deleted
         if event == '-delete_coin-':
@@ -96,7 +96,7 @@ def run():
                 col_num = values['-coins_table-'][0]
                 selected_coin = selected_exc.coins[col_num]
                 app.delete_coin(selected_coin)
-                app.refresh_coin_table(selected_exc)
+                app.update_coin_tbl(selected_exc)
 
     app.view.window.close()
 
