@@ -22,7 +22,7 @@ class Layout:
     """
 
     @classmethod
-    def create(cls, exc_list):
+    def create(cls, exc_list, default_save_folder):
         """Creates screen layout. 
 
         Args:
@@ -36,7 +36,7 @@ class Layout:
 
         return [[sg.Column(cls.__col1_layout(exc_list),
                            vertical_alignment='top'),
-                 sg.Column(cls.__col2_layout())]]
+                 sg.Column(cls.__col2_layout(default_save_folder))]]
 
     @staticmethod
     def __col1_layout(exc_list):
@@ -68,7 +68,7 @@ class Layout:
                           key='-exchanges_table-')]]
 
     @classmethod
-    def __col2_layout(cls):
+    def __col2_layout(cls, default_save_folder):
         """Creates layout of column2.
 
         Returns:
@@ -86,12 +86,12 @@ class Layout:
                           num_rows=5,
                           key='-coins_table-',
                           enable_events=True)],
-                [sg.Column(cls.__col2_bot_left_layout(),
+                [sg.Column(cls.__col2_bot_left_layout(default_save_folder),
                            vertical_alignment='top'),
                  sg.Column(cls.__col2_bot_right_layout())]]
 
     @staticmethod
-    def __col2_bot_left_layout():
+    def __col2_bot_left_layout(default_save_folder):
         """Creates layout of bottom left of column2.
 
         Returns:
@@ -121,7 +121,7 @@ class Layout:
                          [sg.Button('ADD', key='-add_coin-')]]
 
         frame2_layout = [[sg.FolderBrowse(target='-folder-'),
-                          sg.Text('C:\..',
+                          sg.Text(default_save_folder,
                                   size=(32, 4),
                                   key='-folder-')]]
 
