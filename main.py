@@ -1,26 +1,28 @@
+from sys import path
 import PySimpleGUI as sg  # GUI framework library
 from screen_layout import Layout
 from model_view_controller import Controller, Model, View
 from exchange_base_cls import Exchange
+from config_cls import Config
 from exchange_classes import *
 
 
 def run():
     """Executes the application.
     """
-    # instantiate application object
+    # Instantiate application object
     app = Controller(Model(), View())
+
+    # Binds configurations to app.sys
+    app.sys = Config()
 
     # Instantiate all exchange classes defined in exchange_classes.py
     exc_list = [cls() for cls in Exchange.__subclasses__()]
 
-    # Get savefolder location
-    default_save_folder_path = app.get_folder_path()
-
     # Creates the start screen layout
-    layout = Layout.create(exc_list, default_save_folder_path)
+    layout = Layout.create(exc_list, app.sys._folder_path)
 
-    # Initializes start screen and attaches it to app.view object
+    # Initializes start screen and binds it to app.view object
     app.view.window = sg.Window('Crypto-exchanges Data Downloader',
                                 layout,
                                 size=(1000, 500),
@@ -33,10 +35,15 @@ def run():
     # Listens the screen and collects user inputs
     while True:
         event, values = app.view.window.read()
+        print(event, values)
 
         # Terminate app when user closes window or clicks cancel
         if event == sg.WIN_CLOSED or event == 'Cancel':
             break
+
+        # check if the save folder was changed
+        if values['-browse-'] != app.sys._folder_path:
+            app.sys.change_folder_path(values['-browse-'])
 
         # Displays coins belong to the selected exchange
         # Displays exchange info when it is clicked
@@ -72,10 +79,10 @@ def run():
                     abbr = values['-abbr-']
                     start_date = app.view.window['-start_date-'].get()
                     start_hour = app.view.window['-start_hour-'].get()
-                    save_folder = app.view.window['-folder-'].get()
 
                     app.add_coin(selected_exc, coin_name, abbr,
-                                 start_date, start_hour, save_folder)
+                                 start_date, start_hour,
+                                 app.sys._folder_path)
 
                     app.update_coin_tbl(selected_exc)
 
