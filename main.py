@@ -41,7 +41,7 @@ def run():
             break
 
         # check if the save folder was changed
-        if values['-browse-'] != app.sys._folder_path:
+        if values['-folder-'] != app.sys._folder_path:
             app.sys.change_folder_path(values['-browse-'])
 
         # Displays coins belong to the selected exchange
