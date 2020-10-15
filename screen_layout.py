@@ -23,21 +23,27 @@ class Layout:
     """
 
     @classmethod
-    def create(cls, exc_list, default_save_folder):
+    def create(cls, exc_list, save_folder,
+               start_date, start_hour):
         """Creates screen layout.
 
         Args:
             exc_list (list): list of exchange objects
+            save_folder (str): default path of save folder
+            start_date (str): default start date
+            start_hour (str): default start hour
 
         Returns:
-            list: Layout of two columns
+            list: screen Layout
         """
         # TanBlue theme is selected for this project
         sg.theme('TanBlue')
 
         return [[sg.Column(cls.__col1_layout(exc_list),
                            vertical_alignment='top'),
-                 sg.Column(cls.__col2_layout(default_save_folder))]]
+                 sg.Column(cls.__col2_layout(save_folder,
+                                             start_date,
+                                             start_hour))]]
 
     @staticmethod
     def __col1_layout(exc_list):
@@ -69,7 +75,7 @@ class Layout:
                           key='-exchanges_table-')]]
 
     @classmethod
-    def __col2_layout(cls, default_save_folder):
+    def __col2_layout(cls, save_folder, start_date, start_hour):
         """Creates layout of column2.
 
         Returns:
@@ -87,12 +93,14 @@ class Layout:
                           num_rows=5,
                           key='-coins_table-',
                           enable_events=True)],
-                [sg.Column(cls.__col2_bot_left_layout(default_save_folder),
+                [sg.Column(cls.__col2_bot_left_layout(save_folder,
+                                                      start_date,
+                                                      start_hour),
                            vertical_alignment='top'),
                  sg.Column(cls.__col2_bot_right_layout())]]
 
     @staticmethod
-    def __col2_bot_left_layout(default_save_folder):
+    def __col2_bot_left_layout(save_folder, start_date, start_hour):
         """Creates layout of bottom left of column2.
 
         Returns:
@@ -106,10 +114,10 @@ class Layout:
                           sg.Input('', size=(29, 1),
                                    key='-abbr-')],
                          [sg.Text('Start Date:'),
-                          sg.Text('01/01/2020',
+                          sg.Text(start_date,
                                   key='-start_date-',
                                   text_color="green"),
-                          sg.Text('00:00:00',
+                          sg.Text(start_hour,
                                   key='-start_hour-',
                                   text_color="green"),
                           sg.Text('UTC', key='-utc-',
@@ -121,7 +129,7 @@ class Layout:
                                             format=('%d-%m-%Y'))],
                          [sg.Button('ADD', key='-add_coin-')]]
 
-        frame2_layout = [[sg.Text(default_save_folder,
+        frame2_layout = [[sg.Text(save_folder,
                                   size=(40, 3),
                                   background_color='white',
                                   key='-folder-')],
