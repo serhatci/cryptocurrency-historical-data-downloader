@@ -3,7 +3,8 @@
 List of Classes:
     Layout
 """
-import PySimpleGUI as sg   # GUI framework library
+import PySimpleGUI as sg
+from PySimpleGUI.PySimpleGUI import Button   # GUI framework library
 
 
 class Layout:
@@ -23,7 +24,7 @@ class Layout:
 
     @classmethod
     def create(cls, exc_list, default_save_folder):
-        """Creates screen layout. 
+        """Creates screen layout.
 
         Args:
             exc_list (list): list of exchange objects
@@ -120,11 +121,12 @@ class Layout:
                                             format=('%d-%m-%Y'))],
                          [sg.Button('ADD', key='-add_coin-')]]
 
-        frame2_layout = [[sg.InputText(default_save_folder,
-                                       size=(36, 4),
-                                       background_color='white',
-                                       key='-folder-'),
-                          sg.FolderBrowse(key='-browse-')]]
+        frame2_layout = [[sg.Text(default_save_folder,
+                                  size=(40, 3),
+                                  background_color='white',
+                                  key='-folder-')],
+                         [sg.Button('Change Folder',
+                                    key='-change_folder-')]]
 
         return [[sg.Button('UPDATE COIN',
                            pad=((4, 14), (8, 1)),
@@ -149,7 +151,7 @@ class Layout:
                           title_color='green',
                           key='-save_loc_panel-')]]
 
-    @staticmethod
+    @ staticmethod
     def __col2_bot_right_layout():
         """Creates layout of bottom right of column2.
 
