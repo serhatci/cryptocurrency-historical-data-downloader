@@ -19,22 +19,30 @@ class Config:
 
     def __init__(self):
         """Constructor of config class.
-
-        Attr:
-            __platform (str) : operating system
-            __folder_path (str) : save folder path
         """
 
         self.__config_file_check()
         self.__config.read('config.ini')
-        self._platform = platform
-        self._folder_path = self.__config['DEFAULT']['SaveFolder']
-        self._start_date = self.__config['DEFAULT']['StartDate']
-        self._start_hour = self.__config['DEFAULT']['StartHour']
+
+    @property
+    def platform():
+        return platform
+
+    @property
+    def folder_path(cls):
+        return cls.__config['DEFAULT']['SaveFolder']
+
+    @property
+    def start_date(cls):
+        return cls.__config['DEFAULT']['StartDate']
+
+    @property
+    def start_hour(cls):
+        return cls.__config['DEFAULT']['StartHour']
 
     @classmethod
     def __config_file_check(cls):
-        """Creates config.ini file if not exists.
+        """Checks and creates config.ini file if not exists.
         """
         if not os.path.isfile('config.ini'):
             cls.__create_config_file()
