@@ -25,7 +25,7 @@ def run():
     # Initializes start screen and binds it to app.view object
     app.view.window = sg.Window('Crypto-exchanges Data Downloader',
                                 layout,
-                                size=(1000, 500),
+                                size=(1000, 520),
                                 finalize=True)
 
     # Initial states of user selections
@@ -35,14 +35,19 @@ def run():
     # Listens the screen and collects user inputs
     while True:
         event, values = app.view.window.read()
+        print(event, values)
 
         # Terminate app when user closes window or clicks cancel
         if event == sg.WIN_CLOSED or event == 'Cancel':
             break
 
-        # check if the save folder was changed
-        if values['-folder-'] != app.sys._folder_path:
-            app.sys.change_folder_path(values['-browse-'])
+        # Checks if the save folder was changed
+        if event == '-change_folder-':
+            new_folder = sg.popup_get_folder('Select a folder to save downloaded data',
+                                             title='Browse Folder',
+                                             default_path=app.sys._folder_path)
+            app.sys.change_folder_path(new_folder)
+            app.view.window['-folder-'].update(new_folder)
 
         # Displays coins belong to the selected exchange
         # Displays exchange info when it is clicked
