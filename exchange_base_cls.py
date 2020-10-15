@@ -8,9 +8,17 @@ from abc import ABC, abstractmethod
 
 class Exchange(ABC):
     """An abstract base class to create crypto-exchange classes.
+
+    class attr:
+        __instance (obj): keeps instance of Exchange class to
+                          app singleton pattern
+                          (Default to None)
+        __coins (list): list of coin objects belong to exchange
+                         (Default to Empty List)
     """
 
     __instance = None
+    _coins = []
 
     def __new__(cls):
         """Creates only a single instance of class.
