@@ -11,16 +11,13 @@ def run():
     """Executes the application.
     """
     # Instantiate application object
-    app = Controller(Model(), View())
-
-    # Binds configurations to app.sys
-    app.sys = Config()
+    app = Controller(Model(Config()), View())
 
     # Instantiate all exchange classes defined in exchange_classes.py
     exc_list = [cls() for cls in Exchange.__subclasses__()]
 
     # Creates the start screen layout
-    layout = Layout.create(exc_list, app.sys._folder_path)
+    layout = Layout.create(exc_list, app.model.sys._folder_path)
 
     # Initializes start screen and binds it to app.view object
     app.view.window = sg.Window('Crypto-exchanges Data Downloader',
@@ -46,7 +43,7 @@ def run():
             new_folder = sg.popup_get_folder('Select a folder to save downloaded data',
                                              title='Browse Folder',
                                              default_path=app.sys._folder_path)
-            app.sys.change_folder_path(new_folder)
+            app.model.sys.change_folder_path(new_folder)
             app.view.window['-folder-'].update(new_folder)
 
         # Displays coins belong to the selected exchange
@@ -86,8 +83,7 @@ def run():
                     start_hour = app.view.window['-start_hour-'].get()
 
                     app.add_coin(selected_exc, coin_name, abbr,
-                                 start_date, start_hour,
-                                 app.sys._folder_path)
+                                 start_date, start_hour)
 
                     app.update_coin_tbl(selected_exc)
 
