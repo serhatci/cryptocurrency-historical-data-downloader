@@ -35,7 +35,6 @@ def run():
     # Listens the screen and collects user inputs
     while True:
         event, values = app.view.window.read()
-        print(event, values)
 
         # Terminate app when user closes window or clicks cancel
         if event == sg.WIN_CLOSED or event == 'Cancel':
