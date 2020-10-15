@@ -144,12 +144,10 @@ class Layout:
                            key='-delete_coin-')],
                 [sg.Frame('ADD NEW COIN',
                           frame1_layout,
-                          title_color='green',
-                          key='-add_coin_panel-')],
+                          title_color='green')],
                 [sg.Frame('SAVE FOLDER',
                           frame2_layout,
-                          title_color='green',
-                          key='-save_loc_panel-')]]
+                          title_color='green')]]
 
     @ staticmethod
     def __col2_bot_right_layout():
@@ -163,9 +161,8 @@ class Layout:
                                       size=(44, 15),
                                       autoscroll=True,
                                       disabled=True,
-                                      key='-action_panel_multiline-')]]
+                                      key='-output_panel-')]]
 
-        return [[sg.Frame('ACTION PANEL',
+        return [[sg.Frame('OUTPUT PANEL',
                           frame_layout,
-                          title_color='green',
-                          key='-action_panel-')]]
+                          title_color='green')]]
