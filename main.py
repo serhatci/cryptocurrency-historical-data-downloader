@@ -41,7 +41,7 @@ def run():
         if event == sg.WIN_CLOSED or event == 'Cancel':
             break
 
-        # Checks if the save folder was changed
+        # Changes save folder
         if event == '-change_folder-':
             new_folder = sg.popup_get_folder('Select a folder to save downloaded data',
                                              title='Browse Folder',
@@ -60,6 +60,7 @@ def run():
                 f'{selected_exc.website}'
             app.display(msg, 'green')
 
+        # Assign selected coin to a variable
         if event == '-coins_table-':
             if not selected_exc:
                 app.display('*Select Exchange')
