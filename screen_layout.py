@@ -120,10 +120,10 @@ class Layout:
                                             format=('%d-%m-%Y'))],
                          [sg.Button('ADD', key='-add_coin-')]]
 
-        frame2_layout = [[sg.Text(default_save_folder,
-                                  size=(36, 4),
-                                  background_color='white',
-                                  key='-folder-'),
+        frame2_layout = [[sg.InputText(default_save_folder,
+                                       size=(36, 4),
+                                       background_color='white',
+                                       key='-folder-'),
                           sg.FolderBrowse(key='-browse-')]]
 
         return [[sg.Button('UPDATE COIN',
