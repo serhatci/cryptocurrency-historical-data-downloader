@@ -29,6 +29,8 @@ class Config:
         self.__config.read('config.ini')
         self._platform = platform
         self._folder_path = self.__config['DEFAULT']['SaveFolder']
+        self._start_date = self.__config['DEFAULT']['StartDate']
+        self._start_hour = self.__config['DEFAULT']['StartHour']
 
     @classmethod
     def __config_file_check(cls):
@@ -42,7 +44,9 @@ class Config:
         """Creates config.ini file with default values.
         """
         cls.__config['DEFAULT'] = {'Platform': platform,
-                                   'SaveFolder': os.getcwd()}
+                                   'SaveFolder': os.getcwd(),
+                                   'StartDate': '01-01-2020',
+                                   'StartHour': '00:00:00'}
         cls.__write_config_file()
 
     @classmethod
