@@ -26,18 +26,38 @@ class Config:
 
     @property
     def platform():
+        """Gets the current operating system.
+
+        Returns:
+            [str]: current operating system
+        """
         return platform
 
     @property
     def folder_path(cls):
+        """Gets the default save folder path.
+
+        Returns:
+            [str]: path of default save folder
+        """
         return cls.__config['DEFAULT']['SaveFolder']
 
     @property
     def start_date(cls):
+        """Gets default start date.
+
+        Returns:
+            [str]: default start date
+        """
         return cls.__config['DEFAULT']['StartDate']
 
     @property
     def start_hour(cls):
+        """Gets default start hour.
+
+        Returns:
+            [str]: default start hour
+        """
         return cls.__config['DEFAULT']['StartHour']
 
     @classmethod
