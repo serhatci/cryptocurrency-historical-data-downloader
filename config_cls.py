@@ -25,7 +25,7 @@ class Config:
         self.__config.read('config.ini')
 
     @property
-    def platform():
+    def platform(self):
         """Gets the current operating system.
 
         Returns:
