@@ -28,6 +28,9 @@ class Controller():
         self.__selected_coin = None
 
     def start(self):
+        """Starts application and listen window.
+        """
+
         # Creates screen layout
         layout = Layout.create(self.model._exc_list,
                                self.model._sys.folder_path,
@@ -146,11 +149,25 @@ class Model:
 
     @staticmethod
     def create_folder(path):
+        """Creates a directory in the system.
+
+        Args:
+            path (str): path where directory will be created
+        """
+
         if not os.path.isdir(path):
             os.mkdir(path)
 
     @staticmethod
     def create_file(path, file_name, cols):
+        """Creates cvs files in which downloaded data will be stored.
+
+        Args:
+            path (str): path where file will be created
+            file_name (str): Name of the file including extension
+            cols (list): list of default column names
+        """
+
         file_path = os.path.join(path, file_name)
         if not os.path.isfile(file_path):
             df = pd.DataFrame(columns=cols)
@@ -162,6 +179,15 @@ class Model:
 
     def add_coin(self, exc, coin_name,
                  abbr, start_date, start_hour):
+        """Adds new coins to the exchange
+
+        Args:
+            exc (obj): selected exchange for coin addition
+            coin_name (str): name of coin
+            abbr (str): abbreviation of coin
+            start_date (str): start date
+            start_hour (str): start hour
+        """
         save_directory = os.path.join(self._sys.folder_path, exc.name)
         self.create_folder(save_directory)
         columns = [i['Column Name'] for i in exc.db_columns]
