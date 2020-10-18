@@ -3,6 +3,7 @@
     List of classes:
         Config
     """
+import ast
 import os
 from sys import platform
 import configparser
@@ -17,12 +18,13 @@ class Config:
 
     __config = configparser.ConfigParser()
 
-    def __init__(self):
+    def __init__(self, exc_list):
         """Constructor of config class.
         """
 
         self.__config_file_check()
         self.__config.read('config.ini')
+        self.__set_exc_coins(exc_list)
 
     @property
     def platform(self):
@@ -40,7 +42,7 @@ class Config:
         Returns:
             [str]: path of default save folder
         """
-        return cls.__config['DEFAULT']['SaveFolder']
+        return cls.__config['SYSTEM']['SaveFolder']
 
     @property
     def start_date(cls):
@@ -49,7 +51,7 @@ class Config:
         Returns:
             [str]: default start date
         """
-        return cls.__config['DEFAULT']['StartDate']
+        return cls.__config['SYSTEM']['StartDate']
 
     @property
     def start_hour(cls):
@@ -58,7 +60,7 @@ class Config:
         Returns:
             [str]: default start hour
         """
-        return cls.__config['DEFAULT']['StartHour']
+        return cls.__config['SYSTEM']['StartHour']
 
     @classmethod
     def __config_file_check(cls):
@@ -71,10 +73,10 @@ class Config:
     def __create_config_file(cls):
         """Creates config.ini file with default values.
         """
-        cls.__config['DEFAULT'] = {'Platform': platform,
-                                   'SaveFolder': os.getcwd(),
-                                   'StartDate': '01-01-2020',
-                                   'StartHour': '00:00:00'}
+        cls.__config['SYSTEM'] = {'Platform': platform,
+                                  'SaveFolder': os.getcwd(),
+                                  'StartDate': '01-01-2020',
+                                  'StartHour': '00:00:00'}
         cls.__write_config_file()
 
     @classmethod
@@ -84,7 +86,7 @@ class Config:
         Args:
             path (str): New folder path
         """
-        cls.__config['DEFAULT']['SaveFolder'] = path
+        cls.__config['SYSTEM']['SaveFolder'] = path
         cls.__write_config_file()
 
     @classmethod
@@ -93,3 +95,18 @@ class Config:
         """
         with open('config.ini', 'w') as configfile:
             cls.__config.write(configfile)
+
+    @classmethod
+    def save_coins(cls, exc_name, coins):
+        cls.__config[exc_name] = coins
+        cls.__write_config_file()
+
+    @classmethod
+    def __set_exc_coins(cls, exchanges):
+        for exc in exchanges:
+            if exc.name in cls.__config:
+                for coin in cls.__config[exc.name]:
+                    data = ast.literal_eval(
+                        cls.__config[exc.name][coin]
+                    )
+                    exc.set_coins('+', coin, data)
