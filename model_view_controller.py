@@ -1,5 +1,5 @@
 import os
-from os import sep
+from config_cls import Config
 import pandas as pd
 import PySimpleGUI as sg  # GUI framework library
 from exchange_base_cls import Exchange
@@ -11,10 +11,10 @@ class Controller():
     """Provides controller object of MVC design.
     """
 
-    def __init__(self, model, view):
+    def __init__(self):
         """Constructor of Controller class.
 
-        Args:
+        Attr:
             model (object): model of MVC design
             view (object): view of MVC design
             __selected_exc (obj): User clicked exchange at run-time
@@ -22,8 +22,8 @@ class Controller():
             __selected_coin (obj): User clicked coin at run-time
                                 (Default to None)
         """
-        self.model = model
-        self.view = view
+        self.model = Model()
+        self.view = View()
         self.__selected_exc = None
         self.__selected_coin = None
 
@@ -32,10 +32,10 @@ class Controller():
         """
 
         # Creates screen layout
-        layout = Layout.create(self.model._exc_list,
-                               self.model._sys.folder_path,
-                               self.model._sys.start_date,
-                               self.model._sys.start_hour)
+        layout = Layout.create(self.model.exc_list,
+                               self.model.sys.folder_path,
+                               self.model.sys.start_date,
+                               self.model.sys.start_hour)
 
         # Initializes application window
         self.view.window = sg.Window('Crypto-exchanges Data Downloader',
@@ -57,19 +57,20 @@ class Controller():
                 new_folder = sg.popup_get_folder(
                     'Select a folder to save downloaded data',
                     title='Browse Folder',
-                    default_path=self.model._sys.folder_path
+                    default_path=self.model.sys.folder_path
                 )
-                self.model._sys.change_folder_path(new_folder)
+                self.model.sys.change_folder_path(new_folder)
                 self.view.window['-folder-'].update(new_folder)
 
             # Displays coins belong to the selected exchange
             # Displays exchange info when it is clicked
             if event == '-exchanges_table-':
                 col_num = values['-exchanges_table-'][0]
-                self.__selected_exc = self.model._exc_list[col_num]
-                self.__selected_exc.coins = self.model.get_coins(
-                    self.__selected_exc.name)
-                self.view.update_coin_tbl(self.__selected_exc)
+                self.__selected_exc = self.model.exc_list[col_num]
+                self.model.check_coins(self.__selected_exc)
+                data = self.model.make_displayable(
+                    self.__selected_exc.coins)
+                self.view.update_coin_tbl(data)
                 msg = f'{self.__selected_exc.name}\n--------\n' \
                     f'{self.__selected_exc.website}'
                 self.view.display(msg, 'green')
@@ -77,7 +78,9 @@ class Controller():
             # Assign selected coin to a variable
             if event == '-coins_table-':
                 if not self.__selected_exc:
-                    self.view.display('*Select Exchange', 'red')
+                    self.view.display(
+                        self.model.msg('*Select Exchange'),
+                        'red')
                 else:
                     col_num = values['-coins_table-'][0]
                     self.__selected_coin = self.__selected_exc.coins[col_num]
@@ -85,44 +88,60 @@ class Controller():
             # User clicks -add- button and a new coin is added
             if event == '-add_coin-':
                 if not self.__selected_exc:
-                    self.view.display('*Select Exchange', 'red')
+                    self.view.display(
+                        self.model.msg('*Select Exchange'),
+                        'red')
                 else:
-                    coin_name = values['-coin_name-']
-                    abbr = values['-abbr-']
-                    start_date = self.view.window['-start_date-'].get()
-                    start_hour = self.view.window['-start_hour-'].get()
-
-                    if not coin_name == '' or abbr == '':
+                    if (values['-coin_name-'] == '' or
+                            values['-abbr-'] == ''):
+                        self.view.display(
+                            self.model.msg('*Missing Info'),
+                            'red')
+                    else:
+                        coin_name = values['-coin_name-']
+                        abbr = values['-abbr-']
+                        start_date = self.view.window['-start_date-'].get()
+                        start_hour = self.view.window['-start_hour-'].get()
                         self.model.add_coin(self.__selected_exc,
                                             coin_name,
                                             abbr,
                                             start_date,
                                             start_hour)
-                        self.view.update_coin_tbl(self.__selected_exc)
-                    else:
-                        self.view.display('*Missing Info', 'red')
+                        data = self.model.make_displayable(
+                            self.__selected_exc.coins)
+                        self.view.update_coin_tbl(data)
 
             # User clicks update button and data starts to download
             if event == '-update_coin-':
                 if not self.__selected_coin:
-                    self.view.display('*Select Coin')
+                    self.view.display(
+                        self.model.msg('*Select Coin'),
+                        'red')
                 else:
                     self.model.download_data(self.__selected_coin)
-                    self.view.update_coin_table(self.__selected_exc)
+                    data = self.model.make_displayable(
+                        self.__selected_exc.coins)
+                    self.view.update_coin_tbl(data)
 
             # User clicks update all button and all data starts to download
             if event == '-update_all-':
                 for coin in self.__selected_exc.coins:
                     self.model.download_data(coin)
-                    self.view.update_coin_table(self.__selected_exc)
+                    data = self.model.make_displayable(
+                        self.__selected_exc.coins)
+                    self.view.update_coin_tbl(data)
 
             # User clicks delete button and coin data is deleted
             if event == '-delete_coin-':
                 if not self.__selected_coin:
-                    self.view.display('*Select Coin', 'red')
+                    self.view.display(
+                        self.model.msg('*Select Coin'),
+                        'red')
                 else:
                     self.model.delete_coin(self.__selected_coin)
-                    self.view.update_coin_tbl(self.__selected_exc)
+                    data = self.model.make_displayable(
+                        self.__selected_exc.coins)
+                    self.view.update_coin_tbl(self.__selected_exc.coins)
 
         self.view.window.close()
 
@@ -131,34 +150,37 @@ class Model:
     """Provides model object of MVC design.
     """
 
-    def __init__(self, config):
-        """Constructor of Model class
+    __exc_list = [cls() for cls in Exchange.__subclasses__()]
+    __sys = Config(__exc_list)
 
-        Args:
-            config (obg): object of config class keeping
-                          configuration attr
+    @ property
+    def sys(cls):
+        """Provides System configurations.
 
-        Attr:
-            _exc_list (list): list of exchange objects instantiated
-                              from exchages_classes.py
-            _msg (dict): dictionary of pre-defined messages
+        Returns:
+            [obj]: system configurations
         """
-        self._sys = config
-        self._exc_list = [cls() for cls in Exchange.__subclasses__()]
-        self._msg = PredefinedMessages._messages
+        return cls.__sys
 
-    @staticmethod
+    @ property
+    def exc_list(cls):
+        return cls.__exc_list
+
+    @ staticmethod
+    def msg(msg):
+        return PredefinedMessages._messages[msg]
+
+    @ staticmethod
     def create_folder(path):
         """Creates a directory in the system.
 
         Args:
             path (str): path where directory will be created
         """
-
         if not os.path.isdir(path):
             os.mkdir(path)
 
-    @staticmethod
+    @ staticmethod
     def create_file(path, file_name, cols):
         """Creates cvs files in which downloaded data will be stored.
 
@@ -167,15 +189,25 @@ class Model:
             file_name (str): Name of the file including extension
             cols (list): list of default column names
         """
-
         file_path = os.path.join(path, file_name)
         if not os.path.isfile(file_path):
             df = pd.DataFrame(columns=cols)
             df.to_csv(file_path, index=False, sep=';')
 
-    @staticmethod
-    def get_coins(selected_exc):
-        pass
+    def check_coins(self, exc):
+        if not exc == {}:
+            path = os.path.join(self.sys.folder_path, exc.name)
+            if os.path.isdir(path):
+                files = os.listdir(path)
+                for coin in exc.coins:
+                    file_name = '{}_{}_{}.csv'.format(
+                        coin,
+                        exc.name,
+                        exc.coins[coin]['StartDate']
+                    )
+                    if not file_name in files:
+                        exc.set_coins('-', coin)
+                        self.sys.save_coins(exc.name, exc.coins)
 
     def add_coin(self, exc, coin_name,
                  abbr, start_date, start_hour):
@@ -188,11 +220,28 @@ class Model:
             start_date (str): start date
             start_hour (str): start hour
         """
-        save_directory = os.path.join(self._sys.folder_path, exc.name)
+        save_directory = os.path.join(self.sys.folder_path, exc.name)
         self.create_folder(save_directory)
         columns = [i['Column Name'] for i in exc.db_columns]
         file_name = f'{coin_name}_{exc.name}_{start_date}.csv'
         self.create_file(save_directory, file_name, columns)
+        coin_data = {'Abbr': abbr,
+                     'StartDate': start_date,
+                     'StartHour': start_hour,
+                     'EndDate': '-',
+                     'EndHour': '-'}
+        exc.set_coins('+', coin_name, coin_data)
+        self.sys.save_coins(exc.name, exc.coins)
+
+    @staticmethod
+    def make_displayable(coins):
+        if not coins == {}:
+            return [[coin,
+                     coins[coin]['Abbr'],
+                     coins[coin]['EndDate'],
+                     coins[coin]['StartDate']] for coin in coins]
+        else:
+            return [['-', '-', '-', '-']]
 
 
 class View:
@@ -212,13 +261,13 @@ class View:
         self.window['-output_panel-'].update(msg,
                                              text_color=color)
 
-    def update_coin_tbl(self, values):
+    def update_coin_tbl(self, data):
         """Updates coins table in the screen.
 
         Args:
-            values (list): 
+            data (dict): dict of coins will be displayed
         """
-        pass
+        self.window['-coins_table-'].update(data)
 
 
 class PredefinedMessages:
