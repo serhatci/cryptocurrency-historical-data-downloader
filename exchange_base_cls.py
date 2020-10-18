@@ -18,7 +18,6 @@ class Exchange(ABC):
     """
 
     __instance = None
-    _coins = []
 
     def __new__(cls):
         """Creates only a single instance of class.
@@ -38,6 +37,19 @@ class Exchange(ABC):
             return cls.__instance
         else:
             raise Exception(f'{cls.__instance.name} was already created!..')
+
+    def __init__(self):
+        self.__possessed_coins = {}
+
+    @property
+    def coins(self):
+        return self.__possessed_coins
+
+    def set_coins(self, method, name, data=None):
+        if method == '+':
+            self.__possessed_coins[name] = data
+        elif method == '-':
+            del self.__possessed_coins[name]
 
     @property
     @abstractmethod
