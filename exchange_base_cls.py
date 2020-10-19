@@ -14,8 +14,6 @@ class Exchange(ABC):
         __instance (obj): keeps instance of Exchange class to
                           app singleton pattern
                           (Default to None)
-        __coins (list): list of coin objects belong to exchange
-                         (Default to Empty List)
     """
 
     __instance = None
@@ -40,17 +38,39 @@ class Exchange(ABC):
             raise Exception(f'{cls.__instance.name} was already created!..')
 
     def __init__(self):
+        """Constructor of Exchange class
+
+        Attr:
+            coins (list): list of coins belongs to the exchange
+                          (Default to [])
+        """
         self.coins = []
 
     def possess_coin(self, name, data):
-        self.coins.append(Coins(name, data))
+        """Adds a coin to exchange's coins list.
+
+        Args:
+            name (str): name of coin
+            data (dict): data of coin
+        """
+        self.coins.append(Coin(name, data))
 
     def abandon_coin(self, coin):
+        """Removes a coin from exchange's coins list.
+
+        Args:
+            coin (obj): object of coin
+        """
         for i in self.coins:
             if coin.name == i.name:
                 self.coins.remove(i)
 
     def display(self):
+        """Provides possessed coins in displayable format.
+
+        Returns:
+            list: List of exchnage's possessed coins
+        """
         if self.coins:
             return [[coin.name,
                      coin.data['Abbr.'],
@@ -184,7 +204,13 @@ class Exchange(ABC):
         raise NotImplementedError
 
 
-class Coins():
+class Coin():
     def __init__(self, name, data):
+        """Constructor of Coin class
+
+        Args:
+            name (str): name of coin
+            data (dict): data of coin
+        """
         self.name = name
         self.data = data
