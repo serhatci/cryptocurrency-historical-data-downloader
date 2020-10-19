@@ -17,15 +17,15 @@ class Controller():
         Attr:
             model (object): model of MVC design
             view (object): view of MVC design
-            __selected_exc (obj): User clicked exchange at run-time
+            __slc_exc (obj): User clicked exchange at run-time
                                 (Default to None)
-            __selected_coin (obj): User clicked coin at run-time
+            __slc_coin (obj): User clicked coin at run-time
                                 (Default to None)
         """
         self.model = Model()
         self.view = View()
-        self.__selected_exc = None
-        self.__selected_coin = None
+        self.__slc_exc = None
+        self.__slc_coin = None
 
     def start(self):
         """Starts application and listen window.
@@ -66,28 +66,27 @@ class Controller():
             # Displays exchange info when it is clicked
             if event == '-exchanges_table-':
                 col_num = values['-exchanges_table-'][0]
-                self.__selected_exc = self.model.exc_list[col_num]
-                self.model.check_coins(self.__selected_exc)
-                data = self.model.make_displayable(
-                    self.__selected_exc.coins)
-                self.view.update_coin_tbl(data)
-                msg = f'{self.__selected_exc.name}\n--------\n' \
-                    f'{self.__selected_exc.website}'
+                self.__slc_exc = self.model.exc_list[col_num]
+                self.model.check_coins(self.__slc_exc)
+                self.view.update_coin_tbl(self.__slc_exc.display())
+                msg = f'{self.__slc_exc.name}\n--------\n' \
+                    f'{self.__slc_exc.website}'
                 self.view.display(msg, 'green')
 
             # Assign selected coin to a variable
             if event == '-coins_table-':
-                if not self.__selected_exc:
+                if not self.__slc_exc:
                     self.view.display(
                         self.model.msg('*Select Exchange'),
                         'red')
                 else:
                     col_num = values['-coins_table-'][0]
-                    self.__selected_coin = self.__selected_exc.coins[col_num]
+                    if col_num:
+                        self.__slc_coin = self.__slc_exc.coins[col_num]
 
             # User clicks -add- button and a new coin is added
             if event == '-add_coin-':
-                if not self.__selected_exc:
+                if not self.__slc_exc:
                     self.view.display(
                         self.model.msg('*Select Exchange'),
                         'red')
@@ -102,46 +101,38 @@ class Controller():
                         abbr = values['-abbr-']
                         start_date = self.view.window['-start_date-'].get()
                         start_hour = self.view.window['-start_hour-'].get()
-                        self.model.add_coin(self.__selected_exc,
+                        self.model.add_coin(self.__slc_exc,
                                             coin_name,
                                             abbr,
                                             start_date,
                                             start_hour)
-                        data = self.model.make_displayable(
-                            self.__selected_exc.coins)
-                        self.view.update_coin_tbl(data)
+                        self.view.update_coin_tbl(self.__slc_exc.display())
 
             # User clicks update button and data starts to download
             if event == '-update_coin-':
-                if not self.__selected_coin:
+                if not self.__slc_coin:
                     self.view.display(
                         self.model.msg('*Select Coin'),
                         'red')
                 else:
-                    self.model.download_data(self.__selected_coin)
-                    data = self.model.make_displayable(
-                        self.__selected_exc.coins)
-                    self.view.update_coin_tbl(data)
+                    self.model.download_data(self.__slc_coin)
+                    self.view.update_coin_tbl(self.__slc_exc.display())
 
             # User clicks update all button and all data starts to download
             if event == '-update_all-':
-                for coin in self.__selected_exc.coins:
+                for coin in self.__slc_exc.coins:
                     self.model.download_data(coin)
-                    data = self.model.make_displayable(
-                        self.__selected_exc.coins)
-                    self.view.update_coin_tbl(data)
+                self.view.update_coin_tbl(self.__slc_exc.display())
 
             # User clicks delete button and coin data is deleted
             if event == '-delete_coin-':
-                if not self.__selected_coin:
+                if not self.__slc_coin:
                     self.view.display(
                         self.model.msg('*Select Coin'),
                         'red')
                 else:
-                    self.model.delete_coin(self.__selected_coin)
-                    data = self.model.make_displayable(
-                        self.__selected_exc.coins)
-                    self.view.update_coin_tbl(self.__selected_exc.coins)
+                    self.model.delete_coin(self.__slc_coin)
+                    self.view.update_coin_tbl(self.__slc_exc.display())
 
         self.view.window.close()
 
@@ -193,25 +184,31 @@ class Model:
         if not os.path.isfile(file_path):
             df = pd.DataFrame(columns=cols)
             df.to_csv(file_path, index=False, sep=';')
+            return True
+        else:
+            return False
 
     def check_coins(self, exc):
-        if not exc == {}:
-            path = os.path.join(self.sys.folder_path, exc.name)
-            if os.path.isdir(path):
-                files = os.listdir(path)
-                for coin in exc.coins:
-                    file_name = '{}_{}_{}.csv'.format(
-                        coin,
-                        exc.name,
-                        exc.coins[coin]['StartDate']
-                    )
-                    if not file_name in files:
-                        exc.set_coins('-', coin)
-                        self.sys.save_coins(exc.name, exc.coins)
+        if exc.coins:
+            files = self.files_in_folder(exc)
+            for coin in exc.coins:
+                file_name = '{}_{}_{}.csv'.format(
+                    coin.name,
+                    exc.name,
+                    coin.data['StartDate']
+                )
+                if not file_name in files:
+                    exc.abandon_coin(coin)
+            self.sys.save_coins(exc.name, exc.coins)
+
+    def files_in_folder(self, exc):
+        path = os.path.join(self.sys.folder_path, exc.name)
+        if os.path.isdir(path):
+            return os.listdir(path)
 
     def add_coin(self, exc, coin_name,
                  abbr, start_date, start_hour):
-        """Adds new coins to the exchange
+        """Adds new coins to the exchange and saves its csv file.
 
         Args:
             exc (obj): selected exchange for coin addition
@@ -224,24 +221,14 @@ class Model:
         self.create_folder(save_directory)
         columns = [i['Column Name'] for i in exc.db_columns]
         file_name = f'{coin_name}_{exc.name}_{start_date}.csv'
-        self.create_file(save_directory, file_name, columns)
-        coin_data = {'Abbr': abbr,
-                     'StartDate': start_date,
-                     'StartHour': start_hour,
-                     'EndDate': '-',
-                     'EndHour': '-'}
-        exc.set_coins('+', coin_name, coin_data)
-        self.sys.save_coins(exc.name, exc.coins)
-
-    @staticmethod
-    def make_displayable(coins):
-        if not coins == {}:
-            return [[coin,
-                     coins[coin]['Abbr'],
-                     coins[coin]['EndDate'],
-                     coins[coin]['StartDate']] for coin in coins]
-        else:
-            return [['-', '-', '-', '-']]
+        if self.create_file(save_directory, file_name, columns):
+            coin_data = {'Abbr.': abbr,
+                         'StartDate': start_date,
+                         'StartHour': start_hour,
+                         'EndDate': '-',
+                         'EndHour': '-'}
+            exc.possess_coin(coin_name, coin_data)
+            self.sys.save_coins(exc.name, exc.coins)
 
 
 class View:
