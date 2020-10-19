@@ -1,7 +1,8 @@
 """Provides a base class for creating crypto-exchange classes.
-    
+
     List of classes:
         Exchange
+        Coin
     """
 from abc import ABC, abstractmethod
 
@@ -39,51 +40,56 @@ class Exchange(ABC):
             raise Exception(f'{cls.__instance.name} was already created!..')
 
     def __init__(self):
-        self.__possessed_coins = {}
+        self.coins = []
 
-    @property
-    def coins(self):
-        return self.__possessed_coins
+    def possess_coin(self, name, data):
+        self.coins.append(Coins(name, data))
 
-    def set_coins(self, method, name, data=None):
-        if method == '+':
-            self.__possessed_coins[name] = data
-        elif method == '-':
-            del self.__possessed_coins[name]
+    def abandon_coin(self, coin):
+        self.coins.remove(coin)
 
-    @property
-    @abstractmethod
+    def display(self):
+        if self.coins:
+            return [[coin.name,
+                     coin.data['Abbr.'],
+                     coin.data['EndDate'],
+                     coin.data['StartDate']] for coin in self.coins]
+        else:
+            return [['-', '-', '-', '-']]
+
+    @ property
+    @ abstractmethod
     def name(self) -> str:
         """Name of crypto-exchange.
         """
         raise NotImplementedError
 
-    @property
-    @abstractmethod
+    @ property
+    @ abstractmethod
     def website(self) -> str:
         """Website link of crypto-exchange.
         """
         raise NotImplementedError
 
-    @property
-    @abstractmethod
+    @ property
+    @ abstractmethod
     def hist_start_date(self) -> str:
         """Start date of historical data.
 
         It defines the oldest date in the historical data
         which will be downloaded. It must be UTC date time.
 
-        Example '2020-01-01 00:00:00+00:00' 
+        Example '2020-01-01 00:00:00+00:00'
         """
         raise NotImplementedError
 
-    @property
-    @abstractmethod
+    @ property
+    @ abstractmethod
     def max_API_requests(self):
         r"""Maximum allowable number of API requests and period.
 
         Exchanges have request limits for a period or limited
-        number of request. These limits must be defined by this 
+        number of request. These limits must be defined by this
         variable in a list with predefined format such as
         [limit number,'minutes/days/weeks/counts']
 
@@ -91,8 +97,8 @@ class Exchange(ABC):
         """
         raise NotImplementedError
 
-    @property
-    @abstractmethod
+    @ property
+    @ abstractmethod
     def block_time_check(self) -> bool:
         """Defines if block time check is required.
 
@@ -103,52 +109,52 @@ class Exchange(ABC):
         """
         raise NotImplementedError
 
-    @property
-    @abstractmethod
+    @ property
+    @ abstractmethod
     def db_columns(self) -> list:
         """Defines SQL table columns and data types.
 
         Each crypto exchange provides historical data in
-        different format. Column names and SQL data types 
+        different format. Column names and SQL data types
         must be predefined to create SQL tables.
 
         Example: [{'Column Name': 'OpenDateMs', 'Data Type': 'BIGINT'}]
         """
         raise NotImplementedError
 
-    @property
-    @abstractmethod
+    @ property
+    @ abstractmethod
     def time_col_index(self) -> int:
         """Index number of time column in downloaded data
 
-        Index of time column is different in each crypto 
+        Index of time column is different in each crypto
         exchnage's provided historical data. I should be
         predefined to create consistent SQL tables for each
         crypto exchange.
         """
         raise NotImplementedError
 
-    @property
-    @abstractmethod
+    @ property
+    @ abstractmethod
     def api_key(self) -> str:
-        """API key of crypto exchange. 
+        """API key of crypto exchange.
         """
         raise NotImplementedError
 
-    @property
-    @abstractmethod
+    @ property
+    @ abstractmethod
     def secret_key(self) -> str:
         """Secret key of crypto exchange.
         """
         raise NotImplementedError
 
-    @abstractmethod
+    @ abstractmethod
     def connect_API(self):
         """Create connection to API of exchange.
         """
         raise NotImplementedError
 
-    @abstractmethod
+    @ abstractmethod
     def download_hist_data(self, symbol, start_date, end_date) -> list:
         """download_hist_data [summary]
 
@@ -163,7 +169,7 @@ class Exchange(ABC):
 
         raise NotImplementedError
 
-    @abstractmethod
+    @ abstractmethod
     def correct_downloaded_data(self, downloaded_data) -> list:
         """Corrects & modifies downloaded data for SQL upload
 
@@ -174,3 +180,9 @@ class Exchange(ABC):
             list: corrected downloaded data for SQL upload
         """
         raise NotImplementedError
+
+
+class Coins():
+    def __init__(self, name, data):
+        self.name = name
+        self.data = data
