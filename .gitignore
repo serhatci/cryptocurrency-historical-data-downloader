@@ -1,5 +1,5 @@
 # config file
-config.ini
+.application/config.ini
 
 # vscode settings
 .vscode/
