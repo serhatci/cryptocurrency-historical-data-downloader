@@ -71,7 +71,7 @@ class Config:
 
     @classmethod
     def __create_config_file(cls):
-        """Creates config.ini file with default values.
+        """Creates and writes config.ini file with default values.
         """
         cls.__config['SYSTEM'] = {'Platform': platform,
                                   'SaveFolder': os.getcwd(),
@@ -93,20 +93,32 @@ class Config:
     def __write_config_file(cls):
         """Save __config obj to config.ini
         """
-        with open('config.ini', 'w') as configfile:
-            cls.__config.write(configfile)
+        with open('config.ini', 'w') as file:
+            cls.__config.write(file)
 
     @classmethod
     def save_coins(cls, exc_name, coins):
+        """Saves coins of an exchange to config.ini file.
+
+        Args:
+            exc_name (str): Name of exchange
+            coins (list): List of coin objects
+        """
         data = {coin.name: coin.data for coin in coins}
         cls.__config[exc_name] = data
         cls.__write_config_file()
 
     @ classmethod
     def __set_exc_coins(cls, exchanges):
+        """Binds coin objects to relevant exchange object.
+
+        Args:
+            exchanges (list): List of exchange objects
+        """
         for exc in exchanges:
             if exc.name in cls.__config:
                 for coin in cls.__config[exc.name]:
+                    # Converts string to dict
                     data = ast.literal_eval(
                         cls.__config[exc.name][coin]
                     )
