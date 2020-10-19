@@ -46,7 +46,6 @@ class Controller():
         # Listens the window and collects user inputs
         while True:
             event, values = self.view.window.read()
-            print(event, values)
 
             # Terminates app when user closes window or clicks cancel
             if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -81,8 +80,7 @@ class Controller():
                         'red')
                 else:
                     col_num = values['-coins_table-'][0]
-                    if col_num:
-                        self.__slc_coin = self.__slc_exc.coins[col_num]
+                    self.__slc_coin = self.__slc_exc.coins[col_num]
 
             # User clicks -add- button and a new coin is added
             if event == '-add_coin-':
@@ -131,7 +129,7 @@ class Controller():
                         self.model.msg('*Select Coin'),
                         'red')
                 else:
-                    self.model.delete_coin(self.__slc_coin)
+                    self.model.delete_coin(self.__slc_exc, self.__slc_coin)
                     self.view.update_coin_tbl(self.__slc_exc.display())
 
         self.view.window.close()
@@ -161,18 +159,22 @@ class Model:
     def msg(msg):
         return PredefinedMessages._messages[msg]
 
-    @ staticmethod
-    def create_folder(path):
+    def create_folder(self, folder_name):
         """Creates a directory in the system.
 
         Args:
             path (str): path where directory will be created
         """
+        path = os.path.join(self.sys.folder_path, folder_name)
         if not os.path.isdir(path):
             os.mkdir(path)
 
-    @ staticmethod
-    def create_file(path, file_name, cols):
+    def delete_folder(self, folder_name):
+        path = os.path.join(self.sys.folder_path, folder_name)
+        if os.path.isdir(path):
+            os.rmdir(path)
+
+    def create_file(self, exc_name, file_name, cols):
         """Creates cvs files in which downloaded data will be stored.
 
         Args:
@@ -180,6 +182,7 @@ class Model:
             file_name (str): Name of the file including extension
             cols (list): list of default column names
         """
+        path = os.path.join(self.sys.folder_path, exc_name)
         file_path = os.path.join(path, file_name)
         if not os.path.isfile(file_path):
             df = pd.DataFrame(columns=cols)
@@ -188,9 +191,18 @@ class Model:
         else:
             return False
 
+    def delete_file(self, exc_name, file_name):
+        path = os.path.join(self.sys.folder_path, exc_name)
+        file_path = os.path.join(path, file_name)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+            return True
+        else:
+            return False
+
     def check_coins(self, exc):
         if exc.coins:
-            files = self.files_in_folder(exc)
+            files = self.files_in_folder(exc.name)
             for coin in exc.coins:
                 file_name = '{}_{}_{}.csv'.format(
                     coin.name,
@@ -201,8 +213,8 @@ class Model:
                     exc.abandon_coin(coin)
             self.sys.save_coins(exc.name, exc.coins)
 
-    def files_in_folder(self, exc):
-        path = os.path.join(self.sys.folder_path, exc.name)
+    def files_in_folder(self, exc_name):
+        path = os.path.join(self.sys.folder_path, exc_name)
         if os.path.isdir(path):
             return os.listdir(path)
 
@@ -217,17 +229,24 @@ class Model:
             start_date (str): start date
             start_hour (str): start hour
         """
-        save_directory = os.path.join(self.sys.folder_path, exc.name)
-        self.create_folder(save_directory)
+        self.create_folder(exc.name)
         columns = [i['Column Name'] for i in exc.db_columns]
         file_name = f'{coin_name}_{exc.name}_{start_date}.csv'
-        if self.create_file(save_directory, file_name, columns):
+        if self.create_file(exc.name, file_name, columns):
             coin_data = {'Abbr.': abbr,
                          'StartDate': start_date,
                          'StartHour': start_hour,
                          'EndDate': '-',
                          'EndHour': '-'}
             exc.possess_coin(coin_name, coin_data)
+            self.sys.save_coins(exc.name, exc.coins)
+
+    def delete_coin(self, exc, coin):
+        file_name = f'{coin.name}_{exc.name}_{coin.data["StartDate"]}.csv'
+        if self.delete_file(exc.name, file_name):
+            if not self.files_in_folder(exc.name):
+                self.delete_folder(exc.name)
+            exc.abandon_coin(coin)
             self.sys.save_coins(exc.name, exc.coins)
 
 
