@@ -22,7 +22,7 @@ class Config:
         """Constructor of config class.
         """
 
-        self.__config_file_check()
+        self.__create_config_file()
         self.__config.read('config.ini')
         self.__set_exc_coins(exc_list)
 
@@ -63,15 +63,8 @@ class Config:
         return cls.__config['SYSTEM']['StartHour']
 
     @classmethod
-    def __config_file_check(cls):
-        """Checks and creates config.ini file if not exists.
-        """
-        if not os.path.isfile('config.ini'):
-            cls.__create_config_file()
-
-    @classmethod
     def __create_config_file(cls):
-        """Creates and writes config.ini file with default values.
+        f"""Creates and/or writes config.ini file with default values.
         """
         cls.__config['SYSTEM'] = {'Platform': platform,
                                   'SaveFolder': os.getcwd(),
