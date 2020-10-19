@@ -19,25 +19,25 @@ class Bitpanda(Exchange):
     hist_start_date = '2020-01-01 00:00:00+00:00'
     max_API_requests = [960, 'counts']
     block_time_check = True
-    db_columns = [{'Colum Name': 'OpenDate',
+    db_columns = [{'Column Name': 'OpenDate',
                    'Data Type': 'DATETIMEOFFSET(0)'},
-                  {'Colum Name': 'OpenDateMs',
+                  {'Column Name': 'OpenDateMs',
                    'Data Type': 'BIGINT'},
-                  {'Colum Name': 'OpenPrice',
+                  {'Column Name': 'OpenPrice',
                    'Data Type': 'FLOAT(24)'},
-                  {'Colum Name': 'HighPrice',
+                  {'Column Name': 'HighPrice',
                    'Data Type': 'FLOAT(24)'},
-                  {'Colum Name': 'LowPrice',
+                  {'Column Name': 'LowPrice',
                    'Data Type': 'FLOAT(24)'},
-                  {'Colum Name': 'ClosePrice',
+                  {'Column Name': 'ClosePrice',
                    'Data Type': 'FLOAT(24)'},
-                  {'Colum Name': 'Volume',
+                  {'Column Name': 'Volume',
                    'Data Type': 'FLOAT(24)'},
-                  {'Colum Name': 'CloseDateMs',
+                  {'Column Name': 'CloseDateMs',
                    'Data Type': 'BIGINT'},
-                  {'Colum Name': 'TotalAmount',
+                  {'Column Name': 'TotalAmount',
                    'Data Type': 'FLOAT(24)'},
-                  {'Colum Name': 'LastSequence',
+                  {'Column Name': 'LastSequence',
                    'Data Type': 'BIGINT'}]
     time_col_index = 0
     api_key = None
