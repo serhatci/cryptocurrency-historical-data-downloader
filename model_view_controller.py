@@ -138,6 +138,10 @@ class Controller():
 
 class Model:
     """Provides model object of MVC design.
+
+    attr:
+        __exc_list (list): list of exchange objects
+        __sys (obj) : Object that stores configuration data
     """
 
     __exc_list = [cls() for cls in Exchange.__subclasses__()]
@@ -154,10 +158,23 @@ class Model:
 
     @ property
     def exc_list(cls):
+        """Provides list of exchanges.
+
+        Returns:
+            list: list of exchange objects
+        """
         return cls.__exc_list
 
     @ staticmethod
     def msg(msg):
+        """Provides a message from pre-defined message class.
+
+        Args:
+            msg (str): Short description of message
+
+        Returns:
+            str: full message ready to be displayed
+        """
         return PredefinedMessages._messages[msg]
 
     def create_folder(self, folder_name):
@@ -171,17 +188,25 @@ class Model:
             os.mkdir(path)
 
     def delete_folder(self, folder_name):
+        """Deletes given exchange folder.
+
+        Args:
+            folder_name (str): name of folder
+        """
         path = os.path.join(self.sys.folder_path, folder_name)
         if os.path.isdir(path):
             os.rmdir(path)
 
     def create_file(self, exc_name, file_name, cols):
-        """Creates cvs files in which downloaded data will be stored.
+        """Creates cvs files for a given coin.
 
         Args:
-            path (str): path where file will be created
+            exc_name (str): name of exchange
             file_name (str): Name of the file including extension
             cols (list): list of default column names
+
+        Returns:
+            (bool): True if file is created and false for failure
         """
         path = os.path.join(self.sys.folder_path, exc_name)
         file_path = os.path.join(path, file_name)
@@ -193,6 +218,15 @@ class Model:
             return False
 
     def delete_file(self, exc_name, file_name):
+        """Deletes a given coin file.
+
+        Args:
+            exc_name (str): name of exchange
+            file_name (str): full name of csv file
+
+        Returns:
+            (bool): True if file is deleted and false for failure
+        """
         path = os.path.join(self.sys.folder_path, exc_name)
         file_path = os.path.join(path, file_name)
         if os.path.isfile(file_path):
@@ -202,6 +236,15 @@ class Model:
             return False
 
     def check_coins(self, exc):
+        """Compare configuration file and system files.
+
+        Checks if coins stored in config.ini file still exist
+        in the system when the app started. Corrects data in 
+        config.ini file according to system data.
+
+        Args:
+            exc (obj): object of exchange
+        """
         if exc.coins:
             files = self.files_in_folder(exc.name)
             for coin in exc.coins:
@@ -215,6 +258,14 @@ class Model:
             self.sys.save_coins(exc.name, exc.coins)
 
     def files_in_folder(self, exc_name):
+        """Provied all coin files in a given folder
+
+        Args:
+            exc_name (str): name of exchange
+
+        Returns:
+            (bool): False if no file exist and True if opposite
+        """
         path = os.path.join(self.sys.folder_path, exc_name)
         if os.path.isdir(path):
             return os.listdir(path)
@@ -243,6 +294,12 @@ class Model:
             self.sys.save_coins(exc.name, exc.coins)
 
     def delete_coin(self, exc, coin):
+        """Removes the coin file from system and config.ini.
+
+        Args:
+            exc (obj): exchange object
+            coin (obj): coin object
+        """
         file_name = f'{coin.name}_{exc.name}_{coin.data["StartDate"]}.csv'
         if self.delete_file(exc.name, file_name):
             if not self.files_in_folder(exc.name):
