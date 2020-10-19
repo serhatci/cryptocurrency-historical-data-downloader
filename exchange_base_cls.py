@@ -46,7 +46,9 @@ class Exchange(ABC):
         self.coins.append(Coins(name, data))
 
     def abandon_coin(self, coin):
-        self.coins.remove(coin)
+        for i in self.coins:
+            if coin.name == i.name:
+                self.coins.remove(i)
 
     def display(self):
         if self.coins:
