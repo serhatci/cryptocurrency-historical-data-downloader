@@ -80,7 +80,8 @@ class Controller():
                         'red')
                 else:
                     col_num = values['-coins_table-'][0]
-                    self.__slc_coin = self.__slc_exc.coins[col_num]
+                    if self.__slc_exc.coins:
+                        self.__slc_coin = self.__slc_exc.coins[col_num]
 
             # User clicks -add- button and a new coin is added
             if event == '-add_coin-':
