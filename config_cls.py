@@ -98,10 +98,11 @@ class Config:
 
     @classmethod
     def save_coins(cls, exc_name, coins):
-        cls.__config[exc_name] = coins
+        data = {coin.name: coin.data for coin in coins}
+        cls.__config[exc_name] = data
         cls.__write_config_file()
 
-    @classmethod
+    @ classmethod
     def __set_exc_coins(cls, exchanges):
         for exc in exchanges:
             if exc.name in cls.__config:
@@ -109,4 +110,4 @@ class Config:
                     data = ast.literal_eval(
                         cls.__config[exc.name][coin]
                     )
-                    exc.set_coins('+', coin, data)
+                    exc.possess_coin(coin, data)
