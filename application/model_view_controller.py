@@ -58,8 +58,11 @@ class Controller():
                     title='Browse Folder',
                     default_path=self.model.sys.folder_path
                 )
-                self.model.sys.change_folder_path(new_folder)
-                self.view.window['-folder-'].update(new_folder)
+                if not os.path.isdir(new_folder):
+                    self.view.display_err(self.model.msg('*Wrong Path'))
+                else:
+                    self.model.sys.change_folder_path(new_folder)
+                    self.view.window['-folder-'].update(new_folder)
 
             # Displays coins belong to the selected exchange
             # Displays exchange info when it is clicked
@@ -69,15 +72,14 @@ class Controller():
                 self.model.check_coins(self.__slc_exc)
                 self.view.update_coin_tbl(self.__slc_exc.display())
                 msg = f'{self.__slc_exc.name}\n--------\n' \
-                    f'{self.__slc_exc.website}'
+                    f'{self.__slc_exc.website}\n--------\n'
                 self.view.display(msg, 'green')
 
             # Assign selected coin to a variable
             if event == '-coins_table-':
                 if not self.__slc_exc:
-                    self.view.display(
-                        self.model.msg('*Select Exchange'),
-                        'red')
+                    self.view.display_err(
+                        self.model.msg('*Select Exchange'))
                 else:
                     col_num = values['-coins_table-'][0]
                     if self.__slc_exc.coins:
@@ -86,15 +88,13 @@ class Controller():
             # User clicks -add- button and a new coin is added
             if event == '-add_coin-':
                 if not self.__slc_exc:
-                    self.view.display(
-                        self.model.msg('*Select Exchange'),
-                        'red')
+                    self.view.display_err(
+                        self.model.msg('*Select Exchange'))
                 else:
                     if (values['-coin_name-'] == '' or
                             values['-abbr-'] == ''):
-                        self.view.display(
-                            self.model.msg('*Missing Info'),
-                            'red')
+                        self.view.display_err(
+                            self.model.msg('*Missing Info'))
                     else:
                         coin_name = values['-coin_name-']
                         abbr = values['-abbr-']
@@ -110,9 +110,8 @@ class Controller():
             # User clicks update button and data starts to download
             if event == '-update_coin-':
                 if not self.__slc_coin:
-                    self.view.display(
-                        self.model.msg('*Select Coin'),
-                        'red')
+                    self.view.display_err(
+                        self.model.msg('*Select Coin'))
                 else:
                     self.model.download_data(self.__slc_coin)
                     self.view.update_coin_tbl(self.__slc_exc.display())
@@ -126,9 +125,8 @@ class Controller():
             # User clicks delete button and coin data is deleted
             if event == '-delete_coin-':
                 if not self.__slc_coin:
-                    self.view.display(
-                        self.model.msg('*Select Coin'),
-                        'red')
+                    self.view.display_err(
+                        self.model.msg('*Select Coin'))
                 else:
                     self.model.delete_coin(self.__slc_exc, self.__slc_coin)
                     self.view.update_coin_tbl(self.__slc_exc.display())
@@ -175,7 +173,8 @@ class Model:
         Returns:
             str: full message ready to be displayed
         """
-        return PredefinedMessages._messages[msg]
+        full_msg = PredefinedMessages._messages[msg] + '\n---------\n'
+        return full_msg
 
     def create_folder(self, folder_name):
         """Creates a directory in the system.
@@ -316,14 +315,23 @@ class View:
     """
 
     def display(self, msg, color):
-        """Displays messages on action panel in the screen.
+        """Displays messages at action panel on the screen.
 
         Args:
             msg (str): desired message to be displayed
             color (str): desired color of the message
         """
         self.window['-output_panel-'].update(msg,
-                                             text_color=color)
+                                             text_color=color, append=False)
+
+    def display_err(self, msg):
+        """Displays error messages at action panel on the screen.
+
+        Args:
+            msg (str): desired message to be displayed
+        """
+        self.window['-output_panel-'].update(msg,
+                                             text_color='red', append=True)
 
     def update_coin_tbl(self, data):
         """Updates coins table in the screen.
@@ -347,5 +355,8 @@ class PredefinedMessages:
         '*Select Coin':
             'Please select a coin first!..',
         '*Missing Info':
-            'Please fill all necessary information!..'
+            'Please fill all necessary information!..',
+        '*Wrong Path':
+            'Given save folder address is wrong! Please give a valid path.'
+
     }
