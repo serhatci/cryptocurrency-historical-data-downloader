@@ -171,7 +171,9 @@ class Layout:
                                       size=(44, 15),
                                       autoscroll=True,
                                       disabled=True,
-                                      key='-output_panel-')]]
+                                      key='-output_panel-',
+                                      pad=(2, 2),
+                                      auto_refresh=True)]]
 
         return [[sg.Frame('OUTPUT PANEL',
                           frame_layout,
