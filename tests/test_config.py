@@ -1,6 +1,5 @@
 import unittest
 from application.config_cls import Config
-from testfixtures import TempDirectory
 
 
 class TestConfig(unittest.TestCase):
@@ -10,11 +9,12 @@ class TestConfig(unittest.TestCase):
         res = con.platform
         self.assertIsInstance(res, str)
 
-    @tempdir()
-    def test_folder_path(dir):
+    def test_folder_path(self):
         con = Config([])
+        import os
+        cws = os.getcwd()
         res = con.folder_path
-        self.assertEqual(dir.path, res)
+        self.assertEqual(cws, res)
 
     def test_start_date(self):
         con = Config([])
