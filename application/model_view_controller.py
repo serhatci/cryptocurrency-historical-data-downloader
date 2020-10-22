@@ -58,22 +58,34 @@ class Controller():
                     title='Browse Folder',
                     default_path=self.model.sys.folder_path
                 )
-                if not os.path.isdir(new_folder):
-                    self.view.display_err(self.model.msg('*Wrong Path'))
-                else:
+                try:
                     self.model.sys.change_folder_path(new_folder)
+                except FileNotFoundError as err:
+                    self.view.display_err(err)
+                except IOError as err:
+                    self.view.display_err(err)
+                else:
                     self.view.window['-folder-'].update(new_folder)
+                    self.view.display(
+                        self.model.msg('*Folder Change'),
+                        'green')
 
             # Displays coins belong to the selected exchange
             # Displays exchange info when it is clicked
             if event == '-exchanges_table-':
                 col_num = values['-exchanges_table-'][0]
                 self.__slc_exc = self.model.exc_list[col_num]
-                self.model.check_coins(self.__slc_exc)
-                self.view.update_coin_tbl(self.__slc_exc.display())
-                msg = f'{self.__slc_exc.name}\n--------\n' \
-                    f'{self.__slc_exc.website}\n--------\n'
-                self.view.display(msg, 'green')
+                try:
+                    self.model.check_coins(self.__slc_exc)
+                except FileNotFoundError as err:
+                    self.view.display_err(err)
+                except Warning as wrn:
+                    self.view.display_err(wrn)
+                else:
+                    msg = f'{self.__slc_exc.name}\n--------\n' \
+                          f'{self.__slc_exc.website}\n--------\n'
+                    self.view.display(msg, 'green')
+                    self.view.update_coin_tbl(self.__slc_exc.display())
 
             # Assign selected coin to a variable
             if event == '-coins_table-':
@@ -100,12 +112,23 @@ class Controller():
                         abbr = values['-abbr-']
                         start_date = self.view.window['-start_date-'].get()
                         start_hour = self.view.window['-start_hour-'].get()
-                        self.model.add_coin(self.__slc_exc,
-                                            coin_name,
-                                            abbr,
-                                            start_date,
-                                            start_hour)
-                        self.view.update_coin_tbl(self.__slc_exc.display())
+                        try:
+                            self.model.add_coin(self.__slc_exc,
+                                                coin_name,
+                                                abbr,
+                                                start_date,
+                                                start_hour)
+                        except FileExistsError as err:
+                            self.view.display_err(err)
+                        except IOError as err:
+                            self.view.display_err(err)
+                        else:
+                            self.view.display(
+                                self.model.msg('*Coin added'),
+                                'green'
+                            )
+                            self.view.update_coin_tbl(
+                                self.__slc_exc.display())
 
             # User clicks update button and data starts to download
             if event == '-update_coin-':
@@ -176,15 +199,13 @@ class Model:
         full_msg = PredefinedMessages._messages[msg] + '\n---------\n'
         return full_msg
 
-    def create_folder(self, folder_name):
+    def create_folder(self, path):
         """Creates a directory in the system.
 
         Args:
             path (str): path where directory will be created
         """
-        path = os.path.join(self.sys.folder_path, folder_name)
-        if not os.path.isdir(path):
-            os.mkdir(path)
+        os.mkdir(path)
 
     def delete_folder(self, folder_name):
         """Deletes given exchange folder.
@@ -196,25 +217,15 @@ class Model:
         if os.path.isdir(path):
             os.rmdir(path)
 
-    def create_file(self, exc_name, file_name, cols):
+    def create_file(self, file_path, cols):
         """Creates cvs files for a given coin.
 
         Args:
-            exc_name (str): name of exchange
-            file_name (str): Name of the file including extension
+            file_path (str): file of path being created
             cols (list): list of default column names
-
-        Returns:
-            (bool): True if file is created and false for failure
         """
-        path = os.path.join(self.sys.folder_path, exc_name)
-        file_path = os.path.join(path, file_name)
-        if not os.path.isfile(file_path):
-            df = pd.DataFrame(columns=cols)
-            df.to_csv(file_path, index=False, sep=';')
-            return True
-        else:
-            return False
+        df = pd.DataFrame(columns=cols)
+        df.to_csv(file_path, index=False, sep=';')
 
     def delete_file(self, exc_name, file_name):
         """Deletes a given coin file.
@@ -228,46 +239,80 @@ class Model:
         """
         path = os.path.join(self.sys.folder_path, exc_name)
         file_path = os.path.join(path, file_name)
-        if os.path.isfile(file_path):
+        if self.check_file(file_path):
             os.remove(file_path)
-            return True
-        else:
-            return False
 
     def check_coins(self, exc):
         """Compare configuration file and system files.
 
         Checks if coins stored in config.ini file still exist
-        in the system when the app started. Corrects data in 
-        config.ini file according to system data.
+        in the system when the an exchange is clicked. If there are
+        miss,ng files, corrects data in config.ini file according
+        to the system data.
 
         Args:
             exc (obj): object of exchange
+
+        Raise:
+            Warning (str): warning message about any change was made
         """
         if exc.coins:
             files = self.files_in_folder(exc.name)
             for coin in exc.coins:
-                file_name = '{}_{}_{}.csv'.format(
-                    coin.name,
-                    exc.name,
-                    coin.data['StartDate']
-                )
+                file_name = self.create_file_name(exc, coin)
                 if not file_name in files:
                     exc.abandon_coin(coin)
-            self.sys.save_coins(exc.name, exc.coins)
+                    self.sys.save_coins(exc.name, exc.coins)
+                    raise Warning(
+                        f'{file_name} could not be found in save folder'
+                        'and was excluded!'
+                    )
+
+    @ staticmethod
+    def create_file_name(exc, coin):
+        return '{}_{}_{}.csv'.format(
+            coin.name,
+            exc.name,
+            coin.data['StartDate']
+        )
 
     def files_in_folder(self, exc_name):
-        """Provied all coin files in a given folder
+        """Provides all coin files in a given folder.
 
         Args:
             exc_name (str): name of exchange
 
         Returns:
-            (bool): False if no file exist and True if opposite
+            (list): List of coin files in the folder
         """
         path = os.path.join(self.sys.folder_path, exc_name)
-        if os.path.isdir(path):
+        if not self.check_dir(path):
+            raise FileNotFoundError(
+                f'{path} could not be found!...')
+        else:
             return os.listdir(path)
+
+    def check_dir(self, dir):
+        """Checks if given path is an existing directory.
+
+        Args:
+            dir (str): path of directory
+
+        Returns:
+            [bool]: True if it exist false if opposite
+        """
+        return os.path.isdir(dir)
+
+    def check_file(self, file):
+        """Checks if given path is an existing file.
+
+        Args:
+            file (str): path of file
+
+        Returns:
+            [bool]: True if it exist false if opposite
+        """
+        return os.path.isfile(file)
 
     def add_coin(self, exc, coin_name,
                  abbr, start_date, start_hour):
@@ -280,10 +325,14 @@ class Model:
             start_date (str): start date
             start_hour (str): start hour
         """
-        self.create_folder(exc.name)
+        folder_path = os.path.join(self.sys.folder_path, exc.name)
+        if not self.check_dir(folder_path):
+            self.create_folder(exc.name)
         columns = [i['Column Name'] for i in exc.db_columns]
         file_name = f'{coin_name}_{exc.name}_{start_date}.csv'
-        if self.create_file(exc.name, file_name, columns):
+        file_path = os.path.join(folder_path, file_name)
+        if not self.check_file(file_path):
+            self.create_file(exc.name, file_name, columns)
             coin_data = {'Abbr.': abbr,
                          'StartDate': start_date,
                          'StartHour': start_hour,
@@ -291,6 +340,11 @@ class Model:
                          'EndHour': '-'}
             exc.possess_coin(coin_name, coin_data)
             self.sys.save_coins(exc.name, exc.coins)
+        else:
+            raise FileExistsError(
+                f'{coin_name} already exists in the save folder'
+                f' with file name of {file_name}'
+            )
 
     def delete_coin(self, exc, coin):
         """Removes the coin file from system and config.ini.
@@ -331,7 +385,11 @@ class View:
             msg (str): desired message to be displayed
         """
         self.window['-output_panel-'].update(msg,
-                                             text_color='red', append=True)
+                                             text_color='red',
+                                             append=True)
+        self.window['-output_panel-'].update('\n---------\n',
+                                             text_color='red',
+                                             append=True)
 
     def update_coin_tbl(self, data):
         """Updates coins table in the screen.
@@ -357,6 +415,13 @@ class PredefinedMessages:
         '*Missing Info':
             'Please fill all necessary information!..',
         '*Wrong Path':
-            'Given save folder address is wrong! Please give a valid path.'
-
+            'Given save folder address is wrong! Please give a valid path.',
+        '*Coins Found':
+            'Cryptoassets belonging to exchange are displayed...',
+        '*Folder Change':
+            'Saving folder has been changed successfully..',
+        '*Coin Added':
+            'A new cryptoasset has been added successfully..',
+        '*Coin Exist':
+            'Coin you are trying to add is already existed!..'
     }
