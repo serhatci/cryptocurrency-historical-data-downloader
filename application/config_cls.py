@@ -22,7 +22,7 @@ class Config:
         """Constructor of config class.
         """
 
-        self.__create_config_file()
+        self.__check_config_file()
         self.__config.read('config.ini')
         self.__set_exc_coins(exc_list)
 
@@ -63,6 +63,15 @@ class Config:
         return cls.__config['SYSTEM']['StartHour']
 
     @classmethod
+    def __check_config_file(cls):
+        """Checks and creates if config.ini file does not exist.
+        """
+        path = os.getcwd()
+        file = os.path.join(path, 'config.ini')
+        if not os.path.isfile(file):
+            cls.__create_config_file()
+
+    @classmethod
     def __create_config_file(cls):
         f"""Creates and/or writes config.ini file with default values.
         """
@@ -79,8 +88,13 @@ class Config:
         Args:
             path (str): New folder path
         """
-        cls.__config['SYSTEM']['SaveFolder'] = path
-        cls.__write_config_file()
+        if not os.path.isdir(path):
+            raise FileNotFoundError(
+                f'{path} is not a valid path for save folder!'
+            )
+        else:
+            cls.__config['SYSTEM']['SaveFolder'] = path
+            cls.__write_config_file()
 
     @classmethod
     def __write_config_file(cls):
