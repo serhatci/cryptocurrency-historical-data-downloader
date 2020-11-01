@@ -1,9 +1,9 @@
-import os
-from config_cls import Config
-import pandas as pd
 import PySimpleGUI as sg  # GUI framework library
+import filemodel_func as backend
+from config_cls import Config
 from exchange_base_cls import Exchange
 from exchange_classes import *
+from predefined_messages import PredefinedMessages
 from screen_layout import Layout
 
 
@@ -11,39 +11,43 @@ class Controller():
     """Provides controller object of MVC design.
     """
 
-    def __init__(self):
+    def __init__(self, model, view):
         """Constructor of Controller class.
 
-        Attr:
+        Args:
             model (object): model of MVC design
             view (object): view of MVC design
-            __slc_exc (obj): User clicked exchange at run-time
-                                (Default to None)
-            __slc_coin (obj): User clicked coin at run-time
+
+        Attr:
+            clicked_exc (obj): User selected exchange at run-time
+                               (Default to None)
+            clicked_coin (obj): User selected coin at run-time
                                 (Default to None)
         """
         self.model = Model()
         self.view = View()
-        self.__slc_exc = None
-        self.__slc_coin = None
+        self.clicked_exc = None
+        self.clicked_coin = None
 
-    def start(self):
-        """Starts application and listen window.
+    def start_app(self):
+        """Starts application
         """
 
         # Creates screen layout
         layout = Layout.create(self.model.exc_list,
-                               self.model.sys.folder_path,
+                               self.model.sys.save_path,
                                self.model.sys.start_date,
                                self.model.sys.start_hour)
 
-        # Initializes application window
-        self.view.window = sg.Window('Crypto-exchanges Data Downloader',
-                                     layout,
-                                     size=(1000, 520),
-                                     finalize=True)
+        # Starts window
+        self.view.start_window(layout)
 
         # Listens the window and collects user inputs
+        self.listen_window()
+
+    def listen_window(self):
+        """Listens the application window and collects user inputs
+        """
         while True:
             event, values = self.view.window.read()
 
@@ -51,116 +55,160 @@ class Controller():
             if event == sg.WIN_CLOSED or event == 'Cancel':
                 break
 
-            # Changes save folder
+            # Changes save folder acc. to user input
             if event == '-change_folder-':
-                new_folder = sg.popup_get_folder(
-                    'Select a folder to save downloaded data',
-                    title='Browse Folder',
-                    default_path=self.model.sys.folder_path
-                )
-                try:
-                    self.model.sys.change_folder_path(new_folder)
-                except FileNotFoundError as err:
-                    self.view.display_err(err)
-                except IOError as err:
-                    self.view.display_err(err)
-                else:
-                    self.view.window['-folder-'].update(new_folder)
-                    self.view.display(
-                        self.model.msg('*Folder Change'),
-                        'green')
+                new_folder = self.get_new_folder()
+                self.change_save_path(new_folder)
 
-            # Displays coins belong to the selected exchange
-            # Displays exchange info when it is clicked
+            # Displays related info for user selected exchange
             if event == '-exchanges_table-':
-                col_num = values['-exchanges_table-'][0]
-                self.__slc_exc = self.model.exc_list[col_num]
-                try:
-                    self.model.check_coins(self.__slc_exc)
-                except FileNotFoundError as err:
-                    self.view.display_err(err)
-                except Warning as wrn:
-                    self.view.display_err(wrn)
-                else:
-                    msg = f'{self.__slc_exc.name}\n--------\n' \
-                          f'{self.__slc_exc.website}\n--------\n'
-                    self.view.display(msg, 'green')
-                    self.view.update_coin_tbl(self.__slc_exc.display())
+                self.set_clicked_exchange(values)
+                self.show_clicked_exc_info()
 
-            # Assign selected coin to a variable
+            # Assign user selected coin to an attr
             if event == '-coins_table-':
-                if not self.__slc_exc:
-                    self.view.display_err(
-                        self.model.msg('*Select Exchange'))
+                if not self.clicked_exc:
+                    self.view.display_defined_msg('*Select Exchange', 'red')
+                if not self.clicked_exc.coins:
+                    self.view.display_defined_msg('*No Coin', 'red')
                 else:
-                    col_num = values['-coins_table-'][0]
-                    if self.__slc_exc.coins:
-                        self.__slc_coin = self.__slc_exc.coins[col_num]
+                    self.set_clicked_coin(values)
 
-            # User clicks -add- button and a new coin is added
+            # Adds a new coin to selected exchange
             if event == '-add_coin-':
-                if not self.__slc_exc:
-                    self.view.display_err(
-                        self.model.msg('*Select Exchange'))
+                if not self.clicked_exc:
+                    self.view.display_defined_msg('*Select Exchange', 'red')
+                elif values['-coin_name-'] == '':
+                    self.view.display_defined_msg('*Missing Name', 'red')
+                elif values['-abbr-'] == '':
+                    self.view.display_defined_msg('*Missing Abbr', 'red')
                 else:
-                    if (values['-coin_name-'] == '' or
-                            values['-abbr-'] == ''):
-                        self.view.display_err(
-                            self.model.msg('*Missing Info'))
-                    else:
-                        coin_name = values['-coin_name-']
-                        abbr = values['-abbr-']
-                        start_date = self.view.window['-start_date-'].get()
-                        start_hour = self.view.window['-start_hour-'].get()
-                        try:
-                            self.model.add_coin(self.__slc_exc,
-                                                coin_name,
-                                                abbr,
-                                                start_date,
-                                                start_hour)
-                        except FileExistsError as err:
-                            self.view.display_err(err)
-                        except IOError as err:
-                            self.view.display_err(err)
-                        else:
-                            self.view.display(
-                                self.model.msg('*Coin added'),
-                                'green'
-                            )
-                            self.view.update_coin_tbl(
-                                self.__slc_exc.display())
+                    coin_data = self.collect_user_input(values)
+                    self.add_new_coin_to_exchange(coin_data)
 
-            # User clicks update button and data starts to download
+            # Update coins data starts to download
             if event == '-update_coin-':
-                if not self.__slc_coin:
-                    self.view.display_err(
-                        self.model.msg('*Select Coin'))
-                else:
-                    self.model.download_data(self.__slc_coin)
-                    self.view.update_coin_tbl(self.__slc_exc.display())
+                if not self.clicked_coin:
+                    self.view.display_defined_msg('*Select Coin', 'red')
+                self.model.download_data()
+                self.view.update_coin_tbl()
 
             # User clicks update all button and all data starts to download
             if event == '-update_all-':
-                for coin in self.__slc_exc.coins:
+                for coin in self.clicked_exc.coins:
                     self.model.download_data(coin)
-                self.view.update_coin_tbl(self.__slc_exc.display())
+                self.view.update_coin_tbl()
 
             # User clicks delete button and coin data is deleted
             if event == '-delete_coin-':
-                if not self.__slc_coin:
-                    self.view.display_err(
-                        self.model.msg('*Select Coin'))
-                else:
-                    self.model.delete_coin(self.__slc_exc, self.__slc_coin)
-                    self.view.update_coin_tbl(self.__slc_exc.display())
+                if not self.clicked_coin:
+                    self.view.display_defined_msg('*Select Coin', 'red')
+                self.remove_coin_from_exchange()
 
         self.view.window.close()
+
+    def collect_user_input(self, values):
+        """Collects user inputs for new coin.
+
+        Args:
+            values (dict): values collected from app window
+
+        Returns:
+            dict: coin data for obj creation
+        """
+        return {
+            'Name': values['-coin_name-'],
+            'Abbr': values['-abbr-'],
+            'StartDate': self.view.window['-start_date-'].get(),
+            'StartHour': self.view.window['-start_hour-'].get(),
+            'EndDate': '-',
+            'EndHour': '-'
+        }
+
+    def remove_coin_from_exchange(self):
+        """Removes clicked coin from target exchange.
+        """
+        try:
+            self.model.delete_coin(self.clicked_exc, self.clicked_coin)
+        except OSError as err:
+            self.view.display_err(err)
+        else:
+            self.view.display_defined_msg('*Coin Deleted', 'green')
+            self.view.update_coin_tbl(self.clicked_exc)
+
+    def add_new_coin_to_exchange(self, coin_data):
+        """Adds user given coin to target exchange.
+        """
+        try:
+            self.model.add_coin(self.clicked_exc, coin_data)
+        except (FileExistsError, OSError) as err:
+            self.view.display_err(err)
+        else:
+            self.view.display_defined_msg('*Coin Added', 'green')
+            self.view.update_coin_tbl(self.clicked_exc)
+
+    def set_clicked_coin(self, values):
+        """Stores user selected coin in clicked_coin attr
+
+        Args:
+            values (dict): values collected from app window
+        """
+        col_num = values['-coins_table-'][0]
+        self.clicked_coin = self.clicked_exc.coins[col_num]
+
+    def set_clicked_exchange(self, values):
+        """Stores user selected exchange in clicked_exc attr
+
+        Args:
+            values (dict): values collected from app window
+        """
+        col_num = values['-exchanges_table-'][0]
+        self.clicked_exc = self.model.exc_list[col_num]
+
+    def get_new_folder(self):
+        """Gets new folder path from user
+
+        Returns:
+            str: new folder path
+        """
+        default_path = self.model.sys.save_path
+        new_folder = self.view.pop_up(default_path)
+        return new_folder
+
+    def change_save_path(self, new_folder):
+        """Changes save folder path acc. to user input.
+
+        Args:
+            new_folder (str): path of new save folder
+        """
+        try:
+            self.model.sys.change_save_path(new_folder)
+        except (NotADirectoryError, OSError) as err:
+            self.view.display_err(err)
+        else:
+            self.view.update_folder(new_folder)
+            self.view.display_defined_msg('*Folder Changed', 'green')
+            self.show_clicked_exc_info()
+
+    def show_clicked_exc_info(self):
+        """Displays selected exchange info on the screen.
+        """
+        try:
+            result = self.model.check_coins(self.clicked_exc)
+            if result:
+                self.view.display_defined_msg('*Corrupted Coin', 'orange')
+                self.view.display_msg(str(result)[1:-1], 'red')
+        except (NotADirectoryError, OSError) as err:
+            self.view.display_err(err)
+        else:
+            self.view.display_exc_info(self.clicked_exc)
+            self.view.update_coin_tbl(self.clicked_exc)
 
 
 class Model:
     """Provides model object of MVC design.
 
-    attr:
+    class attr:
         __exc_list (list): list of exchange objects
         __sys (obj) : Object that stores configuration data
     """
@@ -186,242 +234,159 @@ class Model:
         """
         return cls.__exc_list
 
-    @ staticmethod
-    def msg(msg):
-        """Provides a message from pre-defined message class.
-
-        Args:
-            msg (str): Short description of message
-
-        Returns:
-            str: full message ready to be displayed
-        """
-        full_msg = PredefinedMessages._messages[msg] + '\n---------\n'
-        return full_msg
-
-    def create_folder(self, path):
-        """Creates a directory in the system.
-
-        Args:
-            path (str): path where directory will be created
-        """
-        os.mkdir(path)
-
-    def delete_folder(self, folder_name):
-        """Deletes given exchange folder.
-
-        Args:
-            folder_name (str): name of folder
-        """
-        path = os.path.join(self.sys.folder_path, folder_name)
-        if os.path.isdir(path):
-            os.rmdir(path)
-
-    def create_file(self, file_path, cols):
-        """Creates cvs files for a given coin.
-
-        Args:
-            file_path (str): file of path being created
-            cols (list): list of default column names
-        """
-        df = pd.DataFrame(columns=cols)
-        df.to_csv(file_path, index=False, sep=';')
-
-    def delete_file(self, exc_name, file_name):
-        """Deletes a given coin file.
-
-        Args:
-            exc_name (str): name of exchange
-            file_name (str): full name of csv file
-
-        Returns:
-            (bool): True if file is deleted and false for failure
-        """
-        path = os.path.join(self.sys.folder_path, exc_name)
-        file_path = os.path.join(path, file_name)
-        if self.check_file(file_path):
-            os.remove(file_path)
-
     def check_coins(self, exc):
-        """Compare configuration file and system files.
+        """Compare coins in memory and coin files in the OS.
 
-        Checks if coins stored in config.ini file still exist
-        in the system when the an exchange is clicked. If there are
-        miss,ng files, corrects data in config.ini file according
-        to the system data.
+        Checks if coin files of clicked exchange in OS match
+        with the coins in memory. If there are missing files,
+        excludes them from memory.
 
         Args:
             exc (obj): object of exchange
 
-        Raise:
-            Warning (str): warning message about any change was made
+        Returns:
+            excluded_coins (list): removed coins from exchange' coin list
         """
+        self.sys.set_coins_of_exchange(exc)
         if exc.coins:
-            files = self.files_in_folder(exc.name)
-            for coin in exc.coins:
-                file_name = self.create_file_name(exc, coin)
-                if not file_name in files:
-                    exc.abandon_coin(coin)
-                    self.sys.save_coins(exc.name, exc.coins)
-                    raise Warning(
-                        f'{file_name} could not be found in save folder'
-                        'and was excluded!'
-                    )
+            coin_files = backend.get_coin_files(exc, self.sys.save_path)
+            return backend.remove_missing_coins(exc, coin_files)
 
-    @ staticmethod
-    def create_file_name(exc, coin):
-        return '{}_{}_{}.csv'.format(
-            coin.name,
-            exc.name,
-            coin.data['StartDate']
-        )
-
-    def files_in_folder(self, exc_name):
-        """Provides all coin files in a given folder.
-
-        Args:
-            exc_name (str): name of exchange
-
-        Returns:
-            (list): List of coin files in the folder
-        """
-        path = os.path.join(self.sys.folder_path, exc_name)
-        if not self.check_dir(path):
-            raise FileNotFoundError(
-                f'{path} could not be found!...')
-        else:
-            return os.listdir(path)
-
-    def check_dir(self, dir):
-        """Checks if given path is an existing directory.
-
-        Args:
-            dir (str): path of directory
-
-        Returns:
-            [bool]: True if it exist false if opposite
-        """
-        return os.path.isdir(dir)
-
-    def check_file(self, file):
-        """Checks if given path is an existing file.
-
-        Args:
-            file (str): path of file
-
-        Returns:
-            [bool]: True if it exist false if opposite
-        """
-        return os.path.isfile(file)
-
-    def add_coin(self, exc, coin_name,
-                 abbr, start_date, start_hour):
-        """Adds new coins to the exchange and saves its csv file.
+    def add_coin(self, exc, coin_data):
+        """Adds a coin to the exchange and saves its csv file.
 
         Args:
             exc (obj): selected exchange for coin addition
-            coin_name (str): name of coin
-            abbr (str): abbreviation of coin
-            start_date (str): start date
-            start_hour (str): start hour
+            coin (obj): target coin
         """
-        folder_path = os.path.join(self.sys.folder_path, exc.name)
-        if not self.check_dir(folder_path):
-            self.create_folder(exc.name)
-        columns = [i['Column Name'] for i in exc.db_columns]
-        file_name = f'{coin_name}_{exc.name}_{start_date}.csv'
-        file_path = os.path.join(folder_path, file_name)
-        if not self.check_file(file_path):
-            self.create_file(exc.name, file_name, columns)
-            coin_data = {'Abbr.': abbr,
-                         'StartDate': start_date,
-                         'StartHour': start_hour,
-                         'EndDate': '-',
-                         'EndHour': '-'}
-            exc.possess_coin(coin_name, coin_data)
-            self.sys.save_coins(exc.name, exc.coins)
-        else:
-            raise FileExistsError(
-                f'{coin_name} already exists in the save folder'
-                f' with file name of {file_name}'
-            )
+        new_coin = backend.create_coin_obj(exc, coin_data)
+        backend.create_exc_folder(exc, self.sys.save_path)
+        backend.create_coin_file(exc, new_coin, self.sys.save_path)
+        exc.possess_coin(new_coin)
+        self.sys.update_config_file(exc)
 
     def delete_coin(self, exc, coin):
-        """Removes the coin file from system and config.ini.
+        """Deletes the coin file from OS and exchange.
 
         Args:
             exc (obj): exchange object
             coin (obj): coin object
         """
-        file_name = f'{coin.name}_{exc.name}_{coin.data["StartDate"]}.csv'
-        if self.delete_file(exc.name, file_name):
-            if not self.files_in_folder(exc.name):
-                self.delete_folder(exc.name)
-            exc.abandon_coin(coin)
-            self.sys.save_coins(exc.name, exc.coins)
+        backend.delete_coin_file(exc, coin, self.sys.save_path)
+        if not backend.files_in_folder(exc, self.sys.save_path):
+            backend.delete_exc_folder(exc, self.sys.save_path)
+        exc.abandon_coin(coin)
+        self.sys.update_config_file(exc)
 
 
 class View:
     """Provides view object of MVC design.
-
-    attr:
-        window (obj): Pysimplegui window object
     """
 
-    def display(self, msg, color):
-        """Displays messages at action panel on the screen.
+    def start_window(self, layout):
+        """Starts application window.
 
         Args:
-            msg (str): desired message to be displayed
+            layout (obj): PysimpleGUI layout
+        """
+        WINDOW_SIZE = (1000, 520)
+        self.window = sg.Window('Crypto-exchanges Data Downloader',
+                                layout,
+                                size=WINDOW_SIZE,
+                                finalize=True)
+
+    def pop_up(self, default_path):
+        """Opens a pop-up window to get new save folder.
+
+        Args:
+            default_path (str): default save folder path
+
+        Returns:
+            str: new save folder path
+        """
+        return sg.popup_get_folder(
+            'Select a folder to save downloaded data',
+            title='Browse Folder',
+            default_path=default_path)
+
+    def update_folder(self, new_folder):
+        """Updates save folder path in the screen.
+
+        Args:
+            new_folder (str): path of new folder
+        """
+        self.window['-folder-'].update(new_folder)
+
+    def display_msg(self, msg, color):
+        """Displays given message at output panel on the screen.
+
+        Args:
+            msg_key (str): short description of pre-defined message
             color (str): desired color of the message
         """
         self.window['-output_panel-'].update(msg,
-                                             text_color=color, append=False)
+                                             text_color=color,
+                                             append=True)
 
-    def display_err(self, msg):
-        """Displays error messages at action panel on the screen.
+    def display_defined_msg(self, msg_key, color):
+        """Displays a pre-defined message at output panel on the screen.
 
         Args:
-            msg (str): desired message to be displayed
+            msg_key (str): short description of pre-defined message
+            color (str): desired color of the message
         """
+        msg = PredefinedMessages._messages[msg_key]
+        self.window['-output_panel-'].update(msg,
+                                             text_color=color,
+                                             append=True)
+
+    def display_err(self, err_msg):
+        """Displays error messages at output panel on the screen.
+
+        Args:
+            err_msg (str): err_msg message to be displayed
+        """
+        msg = 'A problem occurred during execution:' \
+              f'\n-----------\n{err_msg}\n------------\n'
         self.window['-output_panel-'].update(msg,
                                              text_color='red',
                                              append=True)
-        self.window['-output_panel-'].update('\n---------\n',
-                                             text_color='red',
-                                             append=True)
 
-    def update_coin_tbl(self, data):
-        """Updates coins table in the screen.
+    def display_exc_info(self, exc):
+        """Displays exchange specific info at output panel.
 
         Args:
-            data (dict): dict of coins will be displayed
+            exc (obj): user selected exchange
         """
+        msg = f'\n{exc.name}\n--------\n' \
+            f'{exc.website}\n--------\n'
+        self.window['-output_panel-'].update(msg,
+                                             text_color='green',
+                                             append=True)
+
+    def update_coin_tbl(self, exc):
+        """Updates coins table acc. to exchange' possessed coins.
+
+        Args:
+            exc (obj): exchange bj
+        """
+        if not exc.coins:
+            data = [['-', '-', '-', '-']]
+        else:
+            data = [[coin.name,
+                     coin.abbr,
+                     coin.end_date,
+                     coin.start_date] for coin in exc.coins]
+
         self.window['-coins_table-'].update(data)
 
+    def create_coin_obj(self, values):
+        """Collect user inputs and creates a coin obj
 
-class PredefinedMessages:
-    """Contains pre-defined messages to select display.
+        Args:
+            values (dict): values collected from app window
 
-    Class Attr:
-        __messages [dict]: dictionary of pre-defined messages
-                         which users can select among them
-    """
-    _messages = {
-        '*Select Exchange':
-            'Please select an exchange first!..',
-        '*Select Coin':
-            'Please select a coin first!..',
-        '*Missing Info':
-            'Please fill all necessary information!..',
-        '*Wrong Path':
-            'Given save folder address is wrong! Please give a valid path.',
-        '*Coins Found':
-            'Cryptoassets belonging to exchange are displayed...',
-        '*Folder Change':
-            'Saving folder has been changed successfully..',
-        '*Coin Added':
-            'A new cryptoasset has been added successfully..',
-        '*Coin Exist':
-            'Coin you are trying to add is already existed!..'
-    }
+        Returns:
+            obj: new coin obj
+        """
+        return Coin(self.clicked_exc, coin_data)

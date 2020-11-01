@@ -7,6 +7,7 @@ import ast
 import os
 from sys import platform
 import configparser
+from coin_cls import Coin
 
 
 class Config:
@@ -24,11 +25,11 @@ class Config:
 
         self.__check_config_file()
         self.__config.read('config.ini')
-        self.__set_exc_coins(exc_list)
+        # self.__set_exc_coins(exc_list)
 
     @property
     def platform(self):
-        """Gets the current operating system.
+        """Provides the current operating system.
 
         Returns:
             [str]: current operating system
@@ -36,8 +37,8 @@ class Config:
         return platform
 
     @property
-    def folder_path(cls):
-        """Gets the default save folder path.
+    def save_path(cls):
+        """Provides the default save folder path.
 
         Returns:
             [str]: path of default save folder
@@ -46,7 +47,7 @@ class Config:
 
     @property
     def start_date(cls):
-        """Gets default start date.
+        """Provides default start date.
 
         Returns:
             [str]: default start date
@@ -55,7 +56,7 @@ class Config:
 
     @property
     def start_hour(cls):
-        """Gets default start hour.
+        """Provides default start hour.
 
         Returns:
             [str]: default start hour
@@ -82,18 +83,21 @@ class Config:
         cls.__write_config_file()
 
     @classmethod
-    def change_folder_path(cls, path):
-        """Changes save folder path and save into config.ini
+    def change_save_path(cls, new_path):
+        """Changes save folder path and saves it into config.ini file.
 
         Args:
-            path (str): New folder path
+            new_path (str): new save folder path
+
+        Raises:
+            NotADirectoryError: new path does not exist
         """
-        if not os.path.isdir(path):
-            raise FileNotFoundError(
-                f'{path} is not a valid path for save folder!'
+        if not os.path.isdir(new_path):
+            raise NotADirectoryError(
+                f'{new_path} is not a valid directory!'
             )
         else:
-            cls.__config['SYSTEM']['SaveFolder'] = path
+            cls.__config['SYSTEM']['SaveFolder'] = new_path
             cls.__write_config_file()
 
     @classmethod
@@ -104,29 +108,49 @@ class Config:
             cls.__config.write(file)
 
     @classmethod
-    def save_coins(cls, exc_name, coins):
-        """Saves coins of an exchange to config.ini file.
+    def update_config_file(cls, exc):
+        """Updates exchange and coins data in config.ini file.
 
         Args:
             exc_name (str): Name of exchange
-            coins (list): List of coin objects
         """
-        data = {coin.name: coin.data for coin in coins}
-        cls.__config[exc_name] = data
+        data = {coin.name: [coin.abbr,
+                            coin.start_date,
+                            coin.start_hour,
+                            coin.end_date,
+                            coin.end_hour] for coin in exc.coins}
+        cls.__config[exc.name] = data
         cls.__write_config_file()
 
-    @ classmethod
-    def __set_exc_coins(cls, exchanges):
-        """Binds coin objects to relevant exchange object.
+    @classmethod
+    def set_coins_of_exchange(cls, exc):
+        """Reads coins from config.ini and adds to exchanges' coin list.
 
         Args:
-            exchanges (list): List of exchange objects
+            exc (obj): exchange 
         """
-        for exc in exchanges:
-            if exc.name in cls.__config:
-                for coin in cls.__config[exc.name]:
-                    # Converts string to dict
-                    data = ast.literal_eval(
-                        cls.__config[exc.name][coin]
-                    )
-                    exc.possess_coin(coin, data)
+        for coin in exc.coins:
+            exc.abandon_coin(coin)
+        if exc.name in cls.__config:
+            for coin in cls.__config[exc.name]:
+                coin_data = cls.__get_coin_data(exc, coin)
+                exc.possess_coin(Coin(exc, coin_data))
+
+    @classmethod
+    def __get_coin_data(cls, exc, coin):
+        """Reads coin data from config ini
+
+        Args:
+            exc (obj): exchange possesing coin
+            coin (obj): target coin
+
+        Returns:
+            dict: data of target coin
+        """
+        data = ast.literal_eval(cls.__config[exc.name][coin])
+        return {'Name': coin,
+                'Abbr': data[0],
+                'StartDate': data[1],
+                'StartHour': data[2],
+                'EndDate': data[3],
+                'EndHour': data[4]}

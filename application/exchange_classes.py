@@ -43,7 +43,7 @@ class Bitpanda(Exchange):
     api_key = None
     secret_key = None
 
-    def connect_API(self) -> object:
+    def connect_API(self) -> None:
         """Create connection to exchange API
 
         Returns:
