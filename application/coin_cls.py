@@ -1,3 +1,10 @@
+"""Provides a class for creating coin objects.
+
+    list of classes:
+        Coin
+    """
+
+
 class Coin:
     """Provides a coin obj for exchanges
     """
