@@ -1,3 +1,4 @@
+from os import path
 import PySimpleGUI as sg  # GUI framework library
 import filemodel_func as backend
 from config_cls import Config
@@ -19,15 +20,15 @@ class Controller():
             view (object): view of MVC design
 
         Attr:
-            clicked_exc (obj): User selected exchange at run-time
+            __clicked_exc (obj): stores user selected exchange at run-time
                                (Default to None)
-            clicked_coin (obj): User selected coin at run-time
+            __clicked_coin (obj): stores user selected coin at run-time
                                 (Default to None)
         """
         self.model = Model()
         self.view = View()
-        self.clicked_exc = None
-        self.clicked_coin = None
+        self.__clicked_exc = None
+        self.__clicked_coin = None
 
     def start_app(self):
         """Starts application
@@ -67,16 +68,16 @@ class Controller():
 
             # Assign user selected coin to an attr
             if event == '-coins_table-':
-                if not self.clicked_exc:
+                if not self.__clicked_exc:
                     self.view.display_defined_msg('*Select Exchange', 'red')
-                if not self.clicked_exc.coins:
+                if not self.__clicked_exc.coins:
                     self.view.display_defined_msg('*No Coin', 'red')
                 else:
                     self.set_clicked_coin(values)
 
             # Adds a new coin to selected exchange
             if event == '-add_coin-':
-                if not self.clicked_exc:
+                if not self.__clicked_exc:
                     self.view.display_defined_msg('*Select Exchange', 'red')
                 elif values['-coin_name-'] == '':
                     self.view.display_defined_msg('*Missing Name', 'red')
@@ -88,20 +89,20 @@ class Controller():
 
             # Update coins data starts to download
             if event == '-update_coin-':
-                if not self.clicked_coin:
+                if not self.__clicked_coin:
                     self.view.display_defined_msg('*Select Coin', 'red')
                 self.model.download_data()
                 self.view.update_coin_tbl()
 
             # User clicks update all button and all data starts to download
             if event == '-update_all-':
-                for coin in self.clicked_exc.coins:
+                for coin in self.__clicked_exc.coins:
                     self.model.download_data(coin)
                 self.view.update_coin_tbl()
 
             # User clicks delete button and coin data is deleted
             if event == '-delete_coin-':
-                if not self.clicked_coin:
+                if not self.__clicked_coin:
                     self.view.display_defined_msg('*Select Coin', 'red')
                 self.remove_coin_from_exchange()
 
@@ -116,57 +117,56 @@ class Controller():
         Returns:
             dict: coin data for obj creation
         """
-        return {
-            'Name': values['-coin_name-'],
-            'Abbr': values['-abbr-'],
-            'StartDate': self.view.window['-start_date-'].get(),
-            'StartHour': self.view.window['-start_hour-'].get(),
-            'EndDate': '-',
-            'EndHour': '-'
-        }
+        return {'Name': values['-coin_name-'],
+                'Abbr': values['-abbr-'],
+                'StartDate': self.view.window['-start_date-'].get(),
+                'StartHour': self.view.window['-start_hour-'].get(),
+                'EndDate': '-',
+                'EndHour': '-'}
 
     def remove_coin_from_exchange(self):
         """Removes clicked coin from target exchange.
         """
         try:
-            self.model.delete_coin(self.clicked_exc, self.clicked_coin)
+            self.model.delete_coin(self.__clicked_exc,
+                                   self.__clicked_coin)
         except OSError as err:
             self.view.display_err(err)
         else:
             self.view.display_defined_msg('*Coin Deleted', 'green')
-            self.view.update_coin_tbl(self.clicked_exc)
+            self.view.update_coin_tbl(self.__clicked_exc)
 
     def add_new_coin_to_exchange(self, coin_data):
         """Adds user given coin to target exchange.
         """
         try:
-            self.model.add_coin(self.clicked_exc, coin_data)
+            self.model.add_coin(self.__clicked_exc, coin_data)
         except (FileExistsError, OSError) as err:
             self.view.display_err(err)
         else:
             self.view.display_defined_msg('*Coin Added', 'green')
-            self.view.update_coin_tbl(self.clicked_exc)
+            self.view.update_coin_tbl(self.__clicked_exc)
 
     def set_clicked_coin(self, values):
-        """Stores user selected coin in clicked_coin attr
+        """Stores user selected coin in __clicked_coin attr.
 
         Args:
             values (dict): values collected from app window
         """
         col_num = values['-coins_table-'][0]
-        self.clicked_coin = self.clicked_exc.coins[col_num]
+        self.__clicked_coin = self.__clicked_exc.coins[col_num]
 
     def set_clicked_exchange(self, values):
-        """Stores user selected exchange in clicked_exc attr
+        """Stores user selected exchange in __clicked_exc attr.
 
         Args:
             values (dict): values collected from app window
         """
         col_num = values['-exchanges_table-'][0]
-        self.clicked_exc = self.model.exc_list[col_num]
+        self.__clicked_exc = self.model.exc_list[col_num]
 
     def get_new_folder(self):
-        """Gets new folder path from user
+        """Gets new folder path from user.
 
         Returns:
             str: new folder path
@@ -193,16 +193,12 @@ class Controller():
     def show_clicked_exc_info(self):
         """Displays selected exchange info on the screen.
         """
-        try:
-            result = self.model.check_coins(self.clicked_exc)
-            if result:
-                self.view.display_defined_msg('*Corrupted Coin', 'orange')
-                self.view.display_msg(str(result)[1:-1], 'red')
-        except (NotADirectoryError, OSError) as err:
-            self.view.display_err(err)
-        else:
-            self.view.display_exc_info(self.clicked_exc)
-            self.view.update_coin_tbl(self.clicked_exc)
+        error = self.model.set_coins_of_exc(self.__clicked_exc)
+        self.view.display_exc_info(self.__clicked_exc)
+        self.view.update_coin_tbl(self.__clicked_exc)
+        if error:
+            for err in error:
+                self.view.display_err(err)
 
 
 class Model:
@@ -234,23 +230,28 @@ class Model:
         """
         return cls.__exc_list
 
-    def check_coins(self, exc):
-        """Compare coins in memory and coin files in the OS.
-
-        Checks if coin files of clicked exchange in OS match
-        with the coins in memory. If there are missing files,
-        excludes them from memory.
+    def set_coins_of_exc(self, exc):
+        """Appends coins found in given exchange's folder to exchange list.
 
         Args:
-            exc (obj): object of exchange
+            exc (obj): target exchange
 
         Returns:
-            excluded_coins (list): removed coins from exchange' coin list
+            error (list): errors occurred when reading a coin file
         """
-        self.sys.set_coins_of_exchange(exc)
-        if exc.coins:
-            coin_files = backend.get_coin_files(exc, self.sys.save_path)
-            return backend.remove_missing_coins(exc, coin_files)
+        exc.coins = []  # empties exchange coins list
+        errors = []
+        coin_file_paths = backend.get_coin_files(exc, self.sys.save_path)
+        for file_path in coin_file_paths:
+            try:
+                comment = backend.read_file_comment(file_path)
+                coin_data = backend.form_new_coin_data(comment)
+            except (ValueError, OSError) as err:
+                errors.append(err)
+            else:
+                coin = backend.create_coin_obj(exc, coin_data)
+                exc.possess_coin(coin)
+        return errors
 
     def add_coin(self, exc, coin_data):
         """Adds a coin to the exchange and saves its csv file.
@@ -263,7 +264,6 @@ class Model:
         backend.create_exc_folder(exc, self.sys.save_path)
         backend.create_coin_file(exc, new_coin, self.sys.save_path)
         exc.possess_coin(new_coin)
-        self.sys.update_config_file(exc)
 
     def delete_coin(self, exc, coin):
         """Deletes the coin file from OS and exchange.
@@ -273,15 +273,18 @@ class Model:
             coin (obj): coin object
         """
         backend.delete_coin_file(exc, coin, self.sys.save_path)
-        if not backend.files_in_folder(exc, self.sys.save_path):
+        if not backend.get_coin_files(exc, self.sys.save_path):
             backend.delete_exc_folder(exc, self.sys.save_path)
         exc.abandon_coin(coin)
-        self.sys.update_config_file(exc)
 
 
 class View:
     """Provides view object of MVC design.
+
+    attr:
+        __displayed_msg (obj): stores displayed messages at run-time
     """
+    __displayed_msg = None
 
     def start_window(self, layout):
         """Starts application window.
@@ -324,9 +327,10 @@ class View:
             msg_key (str): short description of pre-defined message
             color (str): desired color of the message
         """
+        msg, value = self.__check_repeating_msg(msg)
         self.window['-output_panel-'].update(msg,
                                              text_color=color,
-                                             append=True)
+                                             append=value)
 
     def display_defined_msg(self, msg_key, color):
         """Displays a pre-defined message at output panel on the screen.
@@ -336,9 +340,10 @@ class View:
             color (str): desired color of the message
         """
         msg = PredefinedMessages._messages[msg_key]
+        msg, value = self.__check_repeating_msg(msg)
         self.window['-output_panel-'].update(msg,
                                              text_color=color,
-                                             append=True)
+                                             append=value)
 
     def display_err(self, err_msg):
         """Displays error messages at output panel on the screen.
@@ -346,11 +351,12 @@ class View:
         Args:
             err_msg (str): err_msg message to be displayed
         """
-        msg = 'A problem occurred during execution:' \
-              f'\n-----------\n{err_msg}\n------------\n'
+        msg = f'----------------\n{err_msg}\n------------------'
+        msg, value = self.__check_repeating_msg(msg)
         self.window['-output_panel-'].update(msg,
                                              text_color='red',
-                                             append=True)
+                                             append=value,
+                                             autoscroll=True)
 
     def display_exc_info(self, exc):
         """Displays exchange specific info at output panel.
@@ -359,10 +365,10 @@ class View:
             exc (obj): user selected exchange
         """
         msg = f'\n{exc.name}\n--------\n' \
-            f'{exc.website}\n--------\n'
+              f'{exc.website}\n--------\n'
         self.window['-output_panel-'].update(msg,
                                              text_color='green',
-                                             append=True)
+                                             append=False)
 
     def update_coin_tbl(self, exc):
         """Updates coins table acc. to exchange' possessed coins.
@@ -389,4 +395,22 @@ class View:
         Returns:
             obj: new coin obj
         """
-        return Coin(self.clicked_exc, coin_data)
+        return Coin(self.__clicked_exc, coin_data)
+
+    def __check_repeating_msg(self, msg):
+        """Checks if msg is already displayed on the screen.
+
+        If message is displayed, changes the msg and append value.
+
+        Args:
+            msg (str): mesg to be displayed
+
+        Returns:
+            [list]: msg and append value
+        """
+        if self.__displayed_msg == msg:
+            msg = '\n----------------------\n' + msg
+            return [msg, True]
+        else:
+            self.__displayed_msg = msg
+            return [msg, False]
