@@ -27,5 +27,5 @@ class PredefinedMessages:
         '*Corrupted Coin':
             'Data file of below coins could not be found in saving folder!',
         '*Coin Deleted':
-            'Selected cryptoassethas been deleted successfully.'
+            'Selected cryptoasset has been deleted successfully.'
     }
