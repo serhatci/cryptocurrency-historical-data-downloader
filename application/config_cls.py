@@ -3,11 +3,9 @@
     List of classes:
         Config
     """
-import ast
 import os
 from sys import platform
 import configparser
-from coin_cls import Coin
 
 
 class Config:
@@ -25,7 +23,6 @@ class Config:
 
         self.__check_config_file()
         self.__config.read('config.ini')
-        # self.__set_exc_coins(exc_list)
 
     @property
     def platform(self):
@@ -74,7 +71,7 @@ class Config:
 
     @classmethod
     def __create_config_file(cls):
-        f"""Creates and/or writes config.ini file with default values.
+        """Creates config.ini file with default values.
         """
         cls.__config['SYSTEM'] = {'Platform': platform,
                                   'SaveFolder': os.getcwd(),
@@ -106,51 +103,3 @@ class Config:
         """
         with open('config.ini', 'w') as file:
             cls.__config.write(file)
-
-    @classmethod
-    def update_config_file(cls, exc):
-        """Updates exchange and coins data in config.ini file.
-
-        Args:
-            exc_name (str): Name of exchange
-        """
-        data = {coin.name: [coin.abbr,
-                            coin.start_date,
-                            coin.start_hour,
-                            coin.end_date,
-                            coin.end_hour] for coin in exc.coins}
-        cls.__config[exc.name] = data
-        cls.__write_config_file()
-
-    @classmethod
-    def set_coins_of_exchange(cls, exc):
-        """Reads coins from config.ini and adds to exchanges' coin list.
-
-        Args:
-            exc (obj): exchange 
-        """
-        for coin in exc.coins:
-            exc.abandon_coin(coin)
-        if exc.name in cls.__config:
-            for coin in cls.__config[exc.name]:
-                coin_data = cls.__get_coin_data(exc, coin)
-                exc.possess_coin(Coin(exc, coin_data))
-
-    @classmethod
-    def __get_coin_data(cls, exc, coin):
-        """Reads coin data from config ini
-
-        Args:
-            exc (obj): exchange possesing coin
-            coin (obj): target coin
-
-        Returns:
-            dict: data of target coin
-        """
-        data = ast.literal_eval(cls.__config[exc.name][coin])
-        return {'Name': coin,
-                'Abbr': data[0],
-                'StartDate': data[1],
-                'StartHour': data[2],
-                'EndDate': data[3],
-                'EndHour': data[4]}
