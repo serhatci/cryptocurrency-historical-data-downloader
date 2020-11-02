@@ -59,6 +59,11 @@ class Exchange(ABC):
         """
         return self.__coins
 
+    @coins.setter
+    def coins(self, data):
+        if isinstance(data, list):
+            self.__coins = data
+
     def possess_coin(self, coin):
         """Adds a coin obj to target exchange's coin list
 
