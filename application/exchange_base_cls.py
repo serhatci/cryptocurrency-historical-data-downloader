@@ -5,6 +5,7 @@
         Coin
     """
 from abc import ABC, abstractmethod
+from tkinter.constants import SEL
 
 
 class Exchange(ABC):
@@ -35,49 +36,51 @@ class Exchange(ABC):
             cls.__instance = super(Exchange, cls).__new__(cls)
             return cls.__instance
         else:
-            raise Exception(f'{cls.__instance.name} was already created!..')
+            raise Exception(
+                f'{cls.__instance.name} was already created!..')
 
     def __init__(self):
-        """Constructor of Exchange class
+        """Constructor of Exchange class.
 
         Attr:
-            coins (list): list of coins belongs to the exchange
-                          (Default to [])
+            __coins (list): list of coins belongs to the exchange
+                            (Default to [])
+            __save_folder_path (str): Exchange's OS path to
+                                      save coin files.
         """
-        self.coins = []
+        self.__coins = []
 
-    def possess_coin(self, name, data):
-        """Adds a coin to exchange's coins list.
-
-        Args:
-            name (str): name of coin
-            data (dict): data of coin
-        """
-        self.coins.append(Coin(name, data))
-
-    def abandon_coin(self, coin):
-        """Removes a coin from exchange's coins list.
-
-        Args:
-            coin (obj): object of coin
-        """
-        for i in self.coins:
-            if coin.name == i.name:
-                self.coins.remove(i)
-
-    def display(self):
-        """Provides possessed coins in displayable format.
+    @property
+    def coins(self):
+        """Possessed coins by exchange.
 
         Returns:
-            list: List of exchnage's possessed coins
+            list: cin object in exchange's coin list
         """
-        if self.coins:
-            return [[coin.name,
-                     coin.data['Abbr.'],
-                     coin.data['EndDate'],
-                     coin.data['StartDate']] for coin in self.coins]
-        else:
-            return [['-', '-', '-', '-']]
+        return self.__coins
+
+    @coins.setter
+    def coins(self, data):
+        if isinstance(data, list):
+            self.__coins = data
+
+    def possess_coin(self, coin):
+        """Adds a coin obj to target exchange's coin list
+
+        Args:
+            coin (obj): new coin to posses
+        """
+        self.__coins.append(coin)
+
+    def abandon_coin(self, coin):
+        """Removes a coin from target exchange's coin list
+
+        Args:
+            coin (obj): coin to remove from stock
+        """
+        for i in self.__coins:
+            if coin.name == i.name:
+                self.__coins.remove(i)
 
     @ property
     @ abstractmethod
@@ -202,15 +205,3 @@ class Exchange(ABC):
             list: corrected downloaded data for SQL upload
         """
         raise NotImplementedError
-
-
-class Coin():
-    def __init__(self, name, data):
-        """Constructor of Coin class
-
-        Args:
-            name (str): name of coin
-            data (dict): data of coin
-        """
-        self.name = name
-        self.data = data

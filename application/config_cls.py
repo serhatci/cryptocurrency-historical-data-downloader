@@ -3,7 +3,6 @@
     List of classes:
         Config
     """
-import ast
 import os
 from sys import platform
 import configparser
@@ -22,13 +21,12 @@ class Config:
         """Constructor of config class.
         """
 
-        self.__config_file_check()
+        self.__check_config_file()
         self.__config.read('config.ini')
-        self.__set_exc_coins(exc_list)
 
     @property
     def platform(self):
-        """Gets the current operating system.
+        """Provides the current operating system.
 
         Returns:
             [str]: current operating system
@@ -36,8 +34,8 @@ class Config:
         return platform
 
     @property
-    def folder_path(cls):
-        """Gets the default save folder path.
+    def save_path(cls):
+        """Provides the default save folder path.
 
         Returns:
             [str]: path of default save folder
@@ -46,7 +44,7 @@ class Config:
 
     @property
     def start_date(cls):
-        """Gets default start date.
+        """Provides default start date.
 
         Returns:
             [str]: default start date
@@ -55,7 +53,7 @@ class Config:
 
     @property
     def start_hour(cls):
-        """Gets default start hour.
+        """Provides default start hour.
 
         Returns:
             [str]: default start hour
@@ -63,15 +61,17 @@ class Config:
         return cls.__config['SYSTEM']['StartHour']
 
     @classmethod
-    def __config_file_check(cls):
-        """Checks and creates config.ini file if not exists.
+    def __check_config_file(cls):
+        """Checks and creates if config.ini file does not exist.
         """
-        if not os.path.isfile('config.ini'):
+        path = os.getcwd()
+        file = os.path.join(path, 'config.ini')
+        if not os.path.isfile(file):
             cls.__create_config_file()
 
     @classmethod
     def __create_config_file(cls):
-        """Creates and writes config.ini file with default values.
+        """Creates config.ini file with default values.
         """
         cls.__config['SYSTEM'] = {'Platform': platform,
                                   'SaveFolder': os.getcwd(),
@@ -80,14 +80,22 @@ class Config:
         cls.__write_config_file()
 
     @classmethod
-    def change_folder_path(cls, path):
-        """Changes save folder path and save into config.ini
+    def change_save_path(cls, new_path):
+        """Changes save folder path and saves it into config.ini file.
 
         Args:
-            path (str): New folder path
+            new_path (str): new save folder path
+
+        Raises:
+            NotADirectoryError: new path does not exist
         """
-        cls.__config['SYSTEM']['SaveFolder'] = path
-        cls.__write_config_file()
+        if not os.path.isdir(new_path):
+            raise NotADirectoryError(
+                f'{new_path} is not a valid directory!'
+            )
+        else:
+            cls.__config['SYSTEM']['SaveFolder'] = new_path
+            cls.__write_config_file()
 
     @classmethod
     def __write_config_file(cls):
@@ -95,31 +103,3 @@ class Config:
         """
         with open('config.ini', 'w') as file:
             cls.__config.write(file)
-
-    @classmethod
-    def save_coins(cls, exc_name, coins):
-        """Saves coins of an exchange to config.ini file.
-
-        Args:
-            exc_name (str): Name of exchange
-            coins (list): List of coin objects
-        """
-        data = {coin.name: coin.data for coin in coins}
-        cls.__config[exc_name] = data
-        cls.__write_config_file()
-
-    @ classmethod
-    def __set_exc_coins(cls, exchanges):
-        """Binds coin objects to relevant exchange object.
-
-        Args:
-            exchanges (list): List of exchange objects
-        """
-        for exc in exchanges:
-            if exc.name in cls.__config:
-                for coin in cls.__config[exc.name]:
-                    # Converts string to dict
-                    data = ast.literal_eval(
-                        cls.__config[exc.name][coin]
-                    )
-                    exc.possess_coin(coin, data)
