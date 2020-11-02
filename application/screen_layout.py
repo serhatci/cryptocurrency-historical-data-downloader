@@ -138,10 +138,10 @@ class Layout:
                          [sg.Button('Change Folder',
                                     key='-change_folder-')]]
 
-        return [[sg.Button('UPDATE COIN',
+        return [[sg.Button('DOWNLOAD',
                            pad=((4, 14), (8, 1)),
                            size=(12, 1),
-                           key='-update_coin-'),
+                           key='-download_coin-'),
                  sg.Button('UPDATE ALL',
                            pad=((0, 14), (8, 1)),
                            size=(12, 1),
