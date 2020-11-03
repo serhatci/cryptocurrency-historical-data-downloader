@@ -9,23 +9,21 @@ class PredefinedMessages:
         '*Select Exchange':
             'Please select an exchange first!',
         '*Select Coin':
-            'Please select a coin first!',
+            'Please select a cryptoasset first!',
         '*No Coin':
-            'Exchange has no coin yet!',
+            'Exchange has no cryptoasset yet!',
         '*Missing Name':
             'Please fill Coin Name input!',
         '*Missing Abbr':
             'Please fill Coin Abbreviation input!',
         '*Folder Changed':
-            'Saving folder has been changed successfully.\n\n'
-            'If you have downloaded coin files in previous folder'
-            'they will not be visible in this folder!..',
+            'Save folder path has been changed successfully!',
         '*Coin Added':
-            'A new cryptoasset has been added successfully.',
+            'A new cryptoasset has been added successfully:',
         '*Coin Exist':
-            'Coin you are trying to add is already existed!',
+            'Cryptoasset you are trying to add is already existed!',
         '*Corrupted Coin':
-            'Data file of below coins could not be found in saving folder!',
+            'Data file of below cryptoasset could not be found in saving folder!',
         '*Coin Deleted':
-            'Selected cryptoasset has been deleted successfully.'
+            'Below cryptoasset has been deleted successfully:'
     }

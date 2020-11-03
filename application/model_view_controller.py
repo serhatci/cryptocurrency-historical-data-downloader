@@ -58,7 +58,7 @@ class Controller():
 
             # Changes save folder acc. to user input
             if event == '-change_folder-':
-                new_folder = self.get_new_folder()
+                new_folder = self.get_new_save_folder()
                 self.change_save_path(new_folder)
 
             # Displays related info for user selected exchange
@@ -91,8 +91,9 @@ class Controller():
             if event == '-update_coin-':
                 if not self.__clicked_coin:
                     self.view.display_defined_msg('*Select Coin', 'red')
-                self.model.download_data()
-                self.view.update_coin_tbl()
+                else:
+                    self.model.download_data()
+                    self.view.update_coin_tbl()
 
             # User clicks update all button and all data starts to download
             if event == '-update_all-':
@@ -104,7 +105,8 @@ class Controller():
             if event == '-delete_coin-':
                 if not self.__clicked_coin:
                     self.view.display_defined_msg('*Select Coin', 'red')
-                self.remove_coin_from_exchange()
+                else:
+                    self.remove_coin_from_exchange()
 
         self.view.window.close()
 
@@ -133,8 +135,11 @@ class Controller():
         except OSError as err:
             self.view.display_err(err)
         else:
-            self.view.display_defined_msg('*Coin Deleted', 'green')
+            self.view.display_defined_msg('*Coin Deleted',
+                                          'green',
+                                          self.__clicked_coin.name)
             self.view.update_coin_tbl(self.__clicked_exc)
+            self.__clicked_coin = None
 
     def add_new_coin_to_exchange(self, coin_data):
         """Adds user given coin to target exchange.
@@ -144,7 +149,9 @@ class Controller():
         except (FileExistsError, OSError) as err:
             self.view.display_err(err)
         else:
-            self.view.display_defined_msg('*Coin Added', 'green')
+            self.view.display_defined_msg('*Coin Added',
+                                          'green',
+                                          coin_data['Name'])
             self.view.update_coin_tbl(self.__clicked_exc)
 
     def set_clicked_coin(self, values):
@@ -165,11 +172,11 @@ class Controller():
         col_num = values['-exchanges_table-'][0]
         self.__clicked_exc = self.model.exc_list[col_num]
 
-    def get_new_folder(self):
-        """Gets new folder path from user.
+    def get_new_save_folder(self):
+        """Gets new save folder path from user.
 
         Returns:
-            str: new folder path
+            str: new save folder path
         """
         default_path = self.model.sys.save_path
         new_folder = self.view.pop_up(default_path)
@@ -187,8 +194,8 @@ class Controller():
             self.view.display_err(err)
         else:
             self.view.update_folder(new_folder)
-            self.view.display_defined_msg('*Folder Changed', 'green')
             self.show_clicked_exc_info()
+            self.view.display_defined_msg('*Folder Changed', 'green')
 
     def show_clicked_exc_info(self):
         """Displays selected exchange info on the screen.
@@ -198,7 +205,8 @@ class Controller():
         self.view.update_coin_tbl(self.__clicked_exc)
         if error:
             for err in error:
-                self.view.display_err(err)
+                self.view.display_err(err[1])
+                self.view.display_msg(f'{err[0]} can not be read!')
 
 
 class Model:
@@ -237,7 +245,8 @@ class Model:
             exc (obj): target exchange
 
         Returns:
-            error (list): errors occurred when reading a coin file
+            error (list): contains file name and errors occurred when reading
+                          a coin file.
         """
         exc.coins = []  # empties exchange coins list
         errors = []
@@ -247,7 +256,7 @@ class Model:
                 comment = backend.read_file_comment(file_path)
                 coin_data = backend.form_new_coin_data(comment)
             except (ValueError, OSError) as err:
-                errors.append(err)
+                errors.append([file_path, err])
             else:
                 coin = backend.create_coin_obj(exc, coin_data)
                 exc.possess_coin(coin)
@@ -332,18 +341,23 @@ class View:
                                              text_color=color,
                                              append=value)
 
-    def display_defined_msg(self, msg_key, color):
+    def display_defined_msg(self, msg_key, color, arg=None):
         """Displays a pre-defined message at output panel on the screen.
 
         Args:
             msg_key (str): short description of pre-defined message
             color (str): desired color of the message
+            arg = additional argument to be displayed
+                  (default to None)
         """
         msg = PredefinedMessages._messages[msg_key]
         msg, value = self.__check_repeating_msg(msg)
         self.window['-output_panel-'].update(msg,
                                              text_color=color,
                                              append=value)
+        if arg:
+            self.window['-output_panel-'].update('\n'+arg.upper(),
+                                                 append=True)
 
     def display_err(self, err_msg):
         """Displays error messages at output panel on the screen.
@@ -351,7 +365,7 @@ class View:
         Args:
             err_msg (str): err_msg message to be displayed
         """
-        msg = f'----------------\n{err_msg}\n------------------'
+        msg = f'{err_msg}'
         msg, value = self.__check_repeating_msg(msg)
         self.window['-output_panel-'].update(msg,
                                              text_color='red',
@@ -403,7 +417,7 @@ class View:
         If message is displayed, changes the msg and append value.
 
         Args:
-            msg (str): mesg to be displayed
+            msg (str): msg to be displayed
 
         Returns:
             [list]: msg and append value

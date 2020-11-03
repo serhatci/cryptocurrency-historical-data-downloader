@@ -101,8 +101,8 @@ def create_coin_file(exc, coin, save_path):
         df.to_csv(file_path, index=False, sep=';', mode='a')
     else:
         raise FileExistsError(
-            f'\n{coin.name} already exists in the system'
-            f'\n\n--{file_path}--\n'
+            f'{coin.name.upper()} already exists in the system:'
+            f'\n{file_path}'
         )
 
 
