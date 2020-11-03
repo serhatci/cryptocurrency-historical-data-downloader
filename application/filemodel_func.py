@@ -20,8 +20,8 @@ def get_coin_files(exc, save_path):
     else:
         all_files = os.listdir(exc_path)
         coin_files = list(filter(lambda x:
-                                 x.count('_') == 2 and
-                                 x.count('-') == 2 and
+                                 x.count('_') == 3 and
+                                 x.count('-') == 3 and
                                  x.find('.csv'), all_files))
         return [os.path.join(exc_path, file) for file in coin_files]
 
@@ -73,7 +73,7 @@ def form_new_coin_data(comment):
         coin_data (dict): coin data for object creation
     """
     data = comment.split(' ')
-    if not len(data) == 6:
+    if not len(data) == 7:
         raise ValueError(
             f'{comment} does not represent correct coin info!')
     return {'Name': data[0],
@@ -81,7 +81,8 @@ def form_new_coin_data(comment):
             'StartDate': data[2],
             'StartHour': data[3],
             'EndDate': data[4],
-            'EndHour': data[5]}
+            'EndHour': data[5],
+            'Frequency': data[6]}
 
 
 def create_coin_file(exc, coin, save_path):
@@ -102,8 +103,7 @@ def create_coin_file(exc, coin, save_path):
     else:
         raise FileExistsError(
             f'{coin.name.upper()} already exists in the system:'
-            f'\n{file_path}'
-        )
+            f'\n{file_path}')
 
 
 def write_initial_comment(coin, file_path):
@@ -113,12 +113,13 @@ def write_initial_comment(coin, file_path):
         coin ([type]): [description]
         file_path ([type]): [description]
     """
-    comment = '#{} {} {} {} {} {}'.format(coin.name,
-                                          coin.abbr,
-                                          coin.start_date,
-                                          coin.start_hour,
-                                          coin.end_date,
-                                          coin.end_hour)
+    comment = '#{} {} {} {} {} {} {}'.format(coin.name,
+                                             coin.abbr,
+                                             coin.start_date,
+                                             coin.start_hour,
+                                             coin.end_date,
+                                             coin.end_hour,
+                                             coin.frequency)
     line = '\n#-----------------------------------------\n'
     with open(file_path, 'w') as f:
         f.write(comment+line)
