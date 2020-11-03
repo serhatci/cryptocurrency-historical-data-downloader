@@ -88,12 +88,11 @@ class Controller():
                     self.add_new_coin_to_exchange(coin_data)
 
             # Update coins data starts to download
-            if event == '-update_coin-':
+            if event == '-download_coin-':
                 if not self.__clicked_coin:
                     self.view.display_defined_msg('*Select Coin', 'red')
                 else:
-                    self.model.download_data()
-                    self.view.update_coin_tbl()
+                    self.download_historical_data()
 
             # User clicks update all button and all data starts to download
             if event == '-update_all-':
@@ -110,6 +109,11 @@ class Controller():
 
         self.view.window.close()
 
+    def download_historical_data(self):
+        pref = self.view.pop_up_preferences()
+        self.model.download_data(self.__clicked_coin)
+        self.view.update_coin_tbl()
+
     def collect_user_input(self, values):
         """Collects user inputs for new coin.
 
@@ -124,7 +128,8 @@ class Controller():
                 'StartDate': self.view.window['-start_date-'].get(),
                 'StartHour': self.view.window['-start_hour-'].get(),
                 'EndDate': '-',
-                'EndHour': '-'}
+                'EndHour': '-',
+                'Frequency': values['-frequency-input-']}
 
     def remove_coin_from_exchange(self):
         """Removes clicked coin from target exchange.
@@ -179,8 +184,17 @@ class Controller():
             str: new save folder path
         """
         default_path = self.model.sys.save_path
-        new_folder = self.view.pop_up(default_path)
+        new_folder = self.view.pop_up_folder(default_path)
         return new_folder
+
+    def get_download_preferences(self):
+        """Gets new save folder path from user.
+
+        Returns:
+            str: new save folder path
+        """
+        preferences = self.view.pop_up_preferences()
+        return preferences
 
     def change_save_path(self, new_folder):
         """Changes save folder path acc. to user input.
@@ -286,6 +300,9 @@ class Model:
             backend.delete_exc_folder(exc, self.sys.save_path)
         exc.abandon_coin(coin)
 
+    def download_data(self, coin):
+        pass
+
 
 class View:
     """Provides view object of MVC design.
@@ -301,13 +318,13 @@ class View:
         Args:
             layout (obj): PysimpleGUI layout
         """
-        WINDOW_SIZE = (1000, 520)
+        WINDOW_SIZE = (1000, 540)
         self.window = sg.Window('Crypto-exchanges Data Downloader',
                                 layout,
                                 size=WINDOW_SIZE,
                                 finalize=True)
 
-    def pop_up(self, default_path):
+    def pop_up_folder(self, default_path):
         """Opens a pop-up window to get new save folder.
 
         Args:
@@ -391,12 +408,13 @@ class View:
             exc (obj): exchange bj
         """
         if not exc.coins:
-            data = [['-', '-', '-', '-']]
+            data = [['-', '-', '-', '-', '-']]
         else:
             data = [[coin.name,
                      coin.abbr,
                      coin.end_date,
-                     coin.start_date] for coin in exc.coins]
+                     coin.start_date,
+                     coin.frequency] for coin in exc.coins]
 
         self.window['-coins_table-'].update(data)
 
