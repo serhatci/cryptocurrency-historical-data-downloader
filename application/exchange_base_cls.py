@@ -175,7 +175,16 @@ class Exchange(ABC):
 
     @ abstractmethod
     def connect_API(self):
-        """Create connection to API of exchange.
+        """If exists, create python library connection to exchange's API.
+        """
+        raise NotImplementedError
+
+    @ abstractmethod
+    def provide_available_coins(self):
+        """Connects exchange's API and gets all available coins. 
+
+        Returns:
+            str: all available coins in the exchange
         """
         raise NotImplementedError
 
