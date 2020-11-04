@@ -6,6 +6,7 @@ from exchange_base_cls import Exchange
 from exchange_classes import *
 from predefined_messages import PredefinedMessages
 from screen_layout import Layout
+import arrow
 
 
 class Controller():
@@ -35,10 +36,14 @@ class Controller():
         """
 
         # Creates screen layout
+        end_date = arrow.utcnow().format('DD-MM-YYYY')
+        end_hour = arrow.utcnow().format('HH:mm:ss')
         layout = Layout.create(self.model.exc_list,
                                self.model.sys.save_path,
                                self.model.sys.start_date,
-                               self.model.sys.start_hour)
+                               self.model.sys.start_hour,
+                               end_date,
+                               end_hour)
 
         # Starts window
         self.view.start_window(layout)
@@ -110,9 +115,9 @@ class Controller():
         self.view.window.close()
 
     def download_historical_data(self):
-        pref = self.view.pop_up_preferences()
-        self.model.download_data(self.__clicked_coin)
-        self.view.update_coin_tbl()
+        res = self.model.download_data(self.__clicked_exc, self.__clicked_coin)
+        self.view.display_err(res)
+        self.view.update_coin_tbl(self.__clicked_exc)
 
     def collect_user_input(self, values):
         """Collects user inputs for new coin.
@@ -127,8 +132,9 @@ class Controller():
                 'Abbr': values['-abbr-'],
                 'StartDate': self.view.window['-start_date-'].get(),
                 'StartHour': self.view.window['-start_hour-'].get(),
-                'EndDate': '-',
-                'EndHour': '-',
+                'EndDate': self.view.window['-end_date-'].get(),
+                'EndHour': self.view.window['-end_hour-'].get(),
+                'LastUpdate': '-',
                 'Frequency': values['-frequency-input-']}
 
     def remove_coin_from_exchange(self):
@@ -300,8 +306,18 @@ class Model:
             backend.delete_exc_folder(exc, self.sys.save_path)
         exc.abandon_coin(coin)
 
-    def download_data(self, coin):
-        pass
+    def download_data(self, exc, coin):
+        freq = coin.frequency.split('-')
+        period = freq[0]
+        unit = freq[1]
+        fmt = 'DD-MM-YYYY HH:mm:ss'
+        start_date = arrow.get(coin.start_date + ' '+coin.start_hour, fmt)
+        end_date = arrow.get(coin.end_date + ' ' + coin.end_hour, fmt)
+        exc.download_hist_data(coin.abbr,
+                               unit,
+                               period,
+                               start_date,
+                               end_date)
 
 
 class View:
@@ -396,7 +412,8 @@ class View:
             exc (obj): user selected exchange
         """
         msg = f'\n{exc.name}\n--------\n' \
-              f'{exc.website}\n--------\n'
+              f'{exc.website}\n--------\n' \
+              f'Avaliable coins:\n{exc.provide_available_coins()}'
         self.window['-output_panel-'].update(msg,
                                              text_color='green',
                                              append=False)
@@ -412,7 +429,7 @@ class View:
         else:
             data = [[coin.name,
                      coin.abbr,
-                     coin.end_date,
+                     coin.last_update,
                      coin.start_date,
                      coin.frequency] for coin in exc.coins]
 
