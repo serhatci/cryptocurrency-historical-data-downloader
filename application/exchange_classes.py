@@ -4,8 +4,6 @@ List of Classes:
     Bitpanda
 """
 
-import time
-import arrow  # Date/time management library
 import requests
 from exchange_base_cls import Exchange
 
@@ -51,15 +49,51 @@ class Bitpanda(Exchange):
         """
         pass
 
-    def download_hist_data(self, symbol, start_date, end_date):
-        """Downloads historical data of selected crypto asset
+    def provide_available_coins(self):
+        """Connect exchange's API and gets all available coins. 
+
+        Returns:
+            str: all available coin in the exchange
+        """
+        headers = {'Accept': 'application/json'}
+        try:
+            r = requests.get(
+                'https://api.exchange.bitpanda.com/public/v1/currencies',
+                headers=headers)
+        except Exception as err:
+            return '\nProblem occurred while connecting to API of ' \
+                   f'{self.name.upper()}\n\n{err}'
+        else:
+            return str([coin['code'] for coin in r.json()]).strip('[]')
+
+    @staticmethod
+    def download_hist_data(symbol, unit, period, start_date, end_date):
+        """Downloads historical data of selected crypto asset.
 
         Args:
             symbol (str): symbol of crypto asset
+            unit (str): MINUTES, HOURS, DAYS etc...
+            period (int): number of units
             start_date (str): data start date of request
             end_date (str): data end date of request
         """
-        pass
+        link = 'https://api.exchange.bitpanda.com/' \
+               'public/v1/candlesticks/{}'.format(symbol)
+
+        headers = {'Accept': 'application/json'}
+
+        # try:
+        r = requests.get(link,
+                         params={'unit': unit.upper(),
+                                 'period': period,
+                                 'from': start_date,
+                                 'to': end_date},
+                         headers=headers)
+        # except Exception as err:
+        #     print(err)
+        #     return err
+        # else:
+        return r.json()
 
     def correct_downloaded_data(self, downloaded_data) -> list:
         """Corrects % modify downloaded data for SQL upload.
