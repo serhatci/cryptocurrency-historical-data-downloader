@@ -23,8 +23,8 @@ class Layout:
     """
 
     @classmethod
-    def create(cls, exc_list, save_folder,
-               start_date, start_hour):
+    def create(cls, exc_list, save_folder, start_date,
+               start_hour, end_date, end_hour):
         """Creates screen layout.
 
         Args:
@@ -32,6 +32,8 @@ class Layout:
             save_folder (str): default path of save folder
             start_date (str): default start date
             start_hour (str): default start hour
+            end_date (str): default end date
+            end_hour (str): default end hour
 
         Returns:
             list: screen Layout
@@ -43,7 +45,9 @@ class Layout:
                            vertical_alignment='top'),
                  sg.Column(cls.__col2_layout(save_folder,
                                              start_date,
-                                             start_hour))]]
+                                             start_hour,
+                                             end_date,
+                                             end_hour))]]
 
     @staticmethod
     def __col1_layout(exc_list):
@@ -75,7 +79,8 @@ class Layout:
                           key='-exchanges_table-')]]
 
     @classmethod
-    def __col2_layout(cls, save_folder, start_date, start_hour):
+    def __col2_layout(cls, save_folder, start_date, start_hour,
+                      end_date, end_hour):
         """Creates layout of column2.
 
         Returns:
@@ -98,12 +103,15 @@ class Layout:
                           text_color='Black')],
                 [sg.Column(cls.__col2_bot_left_layout(save_folder,
                                                       start_date,
-                                                      start_hour),
+                                                      start_hour,
+                                                      end_date,
+                                                      end_hour),
                            vertical_alignment='top'),
                  sg.Column(cls.__col2_bot_right_layout())]]
 
     @staticmethod
-    def __col2_bot_left_layout(save_folder, start_date, start_hour):
+    def __col2_bot_left_layout(save_folder, start_date, start_hour,
+                               end_date, end_hour):
         """Creates layout of bottom left of column2.
 
         Returns:
@@ -119,14 +127,26 @@ class Layout:
                          [sg.Text('Start Date:'),
                           sg.Text(start_date,
                                   key='-start_date-',
-                                  text_color="green"),
+                                  text_color='green'),
                           sg.Text(start_hour,
                                   key='-start_hour-',
-                                  text_color="green"),
-                          sg.Text('UTC', key='-utc-',
-                                  text_color="green"),
+                                  text_color='green'),
+                          sg.Text('UTC', text_color='green'),
                           sg.CalendarButton('Calendar',
                                             target='-start_date-',
+                                            pad=None,
+                                            key='-calendar-',
+                                            format=('%d-%m-%Y'))],
+                         [sg.Text('End  Date:'),
+                          sg.Text(end_date,
+                                  key='-end_date-',
+                                  text_color='green'),
+                          sg.Text(end_hour,
+                                  key='-end_hour-',
+                                  text_color='green'),
+                          sg.Text('UTC', text_color='green'),
+                          sg.CalendarButton('Calendar',
+                                            target='-end_date-',
                                             pad=None,
                                             key='-calendar-',
                                             format=('%d-%m-%Y'))],
@@ -134,11 +154,11 @@ class Layout:
                           sg.InputCombo(('1 minute',
                                          '5 minutes',
                                          '30 minutes',
-                                         '1 hour',
-                                         '1 day',
-                                         '1 week',
-                                         '1 month'),
-                                        default_value='1 day',
+                                         '1 hours',
+                                         '1 days',
+                                         '1 weeks',
+                                         '1 months'),
+                                        default_value='1 days',
                                         key='-frequency-input-',
                                         size=(15, 1))],
                          [sg.Button('ADD', key='-add_coin-')]]
@@ -180,7 +200,7 @@ class Layout:
         """
 
         frame_layout = [[sg.Multiline(default_text='',
-                                      size=(44, 15),
+                                      size=(44, 18),
                                       autoscroll=True,
                                       disabled=True,
                                       key='-output_panel-',
