@@ -73,7 +73,7 @@ def form_new_coin_data(comment):
         coin_data (dict): coin data for object creation
     """
     data = comment.split(' ')
-    if not len(data) == 7:
+    if not len(data) == 8:
         raise ValueError(
             f'{comment} does not represent correct coin info!')
     return {'Name': data[0],
@@ -82,7 +82,8 @@ def form_new_coin_data(comment):
             'StartHour': data[3],
             'EndDate': data[4],
             'EndHour': data[5],
-            'Frequency': data[6]}
+            'LastUpdate': data[6],
+            'Frequency': data[7]}
 
 
 def create_coin_file(exc, coin, save_path):
@@ -113,14 +114,15 @@ def write_initial_comment(coin, file_path):
         coin ([type]): [description]
         file_path ([type]): [description]
     """
-    comment = '#{} {} {} {} {} {} {}'.format(coin.name,
-                                             coin.abbr,
-                                             coin.start_date,
-                                             coin.start_hour,
-                                             coin.end_date,
-                                             coin.end_hour,
-                                             coin.frequency)
-    line = '\n#-----------------------------------------\n'
+    comment = '#{} {} {} {} {} {} {} {}'.format(coin.name,
+                                                coin.abbr,
+                                                coin.start_date,
+                                                coin.start_hour,
+                                                coin.end_date,
+                                                coin.end_hour,
+                                                coin.last_update,
+                                                coin.frequency)
+    line = '\n#-----------------------------------------------------------'
     with open(file_path, 'w') as f:
         f.write(comment+line)
 
