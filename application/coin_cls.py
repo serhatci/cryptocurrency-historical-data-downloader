@@ -22,7 +22,8 @@ class Coin:
         self.start_hour = data['StartHour']
         self.end_date = data['EndDate']
         self.end_hour = data['EndHour']
-        self.frequency = data['Frequency'].replace(' ', '-')
+        self.last_update = data['LastUpdate']
+        self.frequency = data['Frequency'].replace(' ', '-').strip()
         self.file_name = '{}_{}_{}_{}.csv'.format(self.name,
                                                   exc.name,
                                                   self.frequency,
