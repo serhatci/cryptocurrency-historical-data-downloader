@@ -14,8 +14,10 @@ class PredefinedMessages:
             'Exchange has no cryptoasset yet!',
         '*Missing Name':
             'Please fill Coin Name input!',
-        '*Missing Abbr':
-            'Please fill Coin Abbreviation input!',
+        '*Missing Quote':
+            'Please fill Quote Coin input!',
+        '*Missing Base':
+            'Please fill Base Coin input!',
         '*Folder Changed':
             'Save folder path has been changed successfully!',
         '*Coin Added':
