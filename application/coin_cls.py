@@ -17,17 +17,19 @@ class Coin:
             data (dict): data of target coin
         """
         self.name = data['Name']
-        self.abbr = data['Abbr']
+        self.quote = data['Quote']
+        self.base = data['Base']
         self.start_date = data['StartDate']
         self.start_hour = data['StartHour']
         self.end_date = data['EndDate']
         self.end_hour = data['EndHour']
         self.last_update = data['LastUpdate']
         self.frequency = data['Frequency'].replace(' ', '-').strip()
-        self.file_name = '{}_{}_{}_{}.csv'.format(self.name,
-                                                  exc.name,
-                                                  self.frequency,
-                                                  self.start_date)
+        self.file_name = '{}_{}_{}_{}_{}.csv'.format(self.name,
+                                                     self.base,
+                                                     self.frequency,
+                                                     exc.name,
+                                                     self.start_date)
 
     def __str__(self):
         """Provies readable representation of coin obj.
