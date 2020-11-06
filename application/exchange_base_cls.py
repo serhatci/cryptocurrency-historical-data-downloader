@@ -115,10 +115,7 @@ class Exchange(ABC):
 
         Exchanges have request limits for a period or limited
         number of request. These limits must be defined by this
-        variable in a list with predefined format such as
-        [limit number,'minutes/days/weeks/counts']
-
-        Example [4,'weeks']
+        variable. Default is 960 data per request.
         """
         raise NotImplementedError
 
