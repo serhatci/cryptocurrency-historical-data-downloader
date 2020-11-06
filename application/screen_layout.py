@@ -93,7 +93,7 @@ class Layout:
                                     ' Trade Pair ',
                                     '     Last Update     ',
                                     '     Start Date      ',
-                                    '  Frequency  '],
+                                    '   Frequency   '],
                           justification='center',
                           row_height=30,
                           num_rows=5,
@@ -119,8 +119,10 @@ class Layout:
         """
 
         frame1_layout = [[sg.Text('Coin Name:'),
-                          sg.Input('', size=(34, 1),
-                                   key='-coin_name-')],
+                          sg.Input('', size=(26, 1),
+                                   key='-coin_name-'),
+                          sg.Button(' AVAILABLE COINS? ',
+                                    key='-available-coins-')],
                          [sg.Text('Quote Coin:'),
                           sg.Input('BTC, ETH etc...', size=(17, 1),
                                    key='-quote-'),
@@ -162,7 +164,7 @@ class Layout:
                                         default_value='days',
                                         key='-frequency-input-',
                                         size=(15, 1))],
-                         [sg.Button('ADD', key='-add_coin-')]]
+                         [sg.Button('   ADD   ', key='-add_coin-')]]
 
         frame2_layout = [[sg.Text(save_folder,
                                   size=(52, 3),
