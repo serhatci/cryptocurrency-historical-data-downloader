@@ -27,5 +27,11 @@ class PredefinedMessages:
         '*Corrupted Coin':
             'Data file of below cryptoasset could not be found in saving folder!',
         '*Coin Deleted':
-            'Below cryptoasset has been deleted successfully:'
+            'Below cryptoasset has been deleted successfully:',
+        '*Progress':
+            'Data downloaded successfully and saved to coin file for below dates:',
+        '*Cancelled':
+            'Execution is CANCELLED!',
+        '*Downloaded':
+            'Data download is finished.',
     }
