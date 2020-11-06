@@ -5,6 +5,8 @@ List of Classes:
 """
 
 import requests
+import arrow
+import json
 from exchange_base_cls import Exchange
 
 
@@ -15,7 +17,7 @@ class Bitpanda(Exchange):
     name = 'Bitpanda'
     website = 'https://www.bitpanda.com/'
     hist_start_date = '2020-01-01 00:00:00+00:00'
-    max_API_requests = [960, 'counts']
+    max_API_requests = 960
     block_time_check = True
     db_columns = [{'Column Name': 'OpenDate',
                    'Data Type': 'DATETIMEOFFSET(0)'},
@@ -53,47 +55,43 @@ class Bitpanda(Exchange):
         """Connect exchange's API and gets all available coins. 
 
         Returns:
-            str: all available coin in the exchange
+            str: all available coins in the exchange
         """
         headers = {'Accept': 'application/json'}
         try:
             r = requests.get(
                 'https://api.exchange.bitpanda.com/public/v1/currencies',
                 headers=headers)
-        except Exception as err:
+        except ConnectionError as err:
             return '\nProblem occurred while connecting to API of ' \
                    f'{self.name.upper()}\n\n{err}'
         else:
             return str([coin['code'] for coin in r.json()]).strip('[]')
 
-    @staticmethod
-    def download_hist_data(symbol, unit, period, start_date, end_date):
+    def download_hist_data(self, coin, time):
         """Downloads historical data of selected crypto asset.
 
         Args:
-            symbol (str): symbol of crypto asset
-            unit (str): MINUTES, HOURS, DAYS etc...
-            period (int): number of units
-            start_date (str): data start date of request
-            end_date (str): data end date of request
+            coin (obj): given coin
+            time (list): [start date obj,end date obj]
         """
-        link = 'https://api.exchange.bitpanda.com/' \
-               'public/v1/candlesticks/{}'.format(symbol)
-
+        link = f'https://api.exchange.bitpanda.com/' \
+               f'public/v1/candlesticks/{coin.quote}_{coin.base}'
         headers = {'Accept': 'application/json'}
-
-        # try:
-        r = requests.get(link,
-                         params={'unit': unit.upper(),
-                                 'period': period,
-                                 'from': start_date,
-                                 'to': end_date},
-                         headers=headers)
-        # except Exception as err:
-        #     print(err)
-        #     return err
-        # else:
-        return r.json()
+        data = requests.get(link,
+                            params={'unit': coin.frequency.upper(),
+                                    'period': '1',
+                                    'from': time[0],
+                                    'to': time[1]},
+                            headers=headers)
+        if not data.status_code == 200:
+            msg = f'An error was received from API of {self.name.upper()}:' \
+                  f'\n\n{data.text}\n\n' \
+                'You can find more info in below link:' \
+                  f'\nhttps://developers.bitpanda.com/exchange/?python'
+            raise ConnectionError(msg)
+        else:
+            return data.json()
 
     def correct_downloaded_data(self, downloaded_data) -> list:
         """Corrects % modify downloaded data for SQL upload.
