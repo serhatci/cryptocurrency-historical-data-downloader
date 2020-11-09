@@ -1,4 +1,3 @@
-from os import path
 import PySimpleGUI as sg  # GUI framework library
 import filemodel_func as backend
 from config_cls import Config
@@ -7,6 +6,8 @@ from exchange_classes import *
 from predefined_messages import PredefinedMessages
 from screen_layout import Layout
 import arrow
+import threading
+from time import sleep
 
 
 class Controller():
@@ -30,6 +31,7 @@ class Controller():
         self.view = View()
         self.__clicked_exc = None
         self.__clicked_coin = None
+        self.cancel = False
 
     def start_app(self):
         """Starts application
@@ -86,24 +88,36 @@ class Controller():
                     self.view.display_defined_msg('*Select Exchange', 'red')
                 elif values['-coin_name-'] == '':
                     self.view.display_defined_msg('*Missing Name', 'red')
-                elif values['-abbr-'] == '':
-                    self.view.display_defined_msg('*Missing Abbr', 'red')
+                elif values['-quote-'] == '':
+                    self.view.display_defined_msg('*Missing Quote', 'red')
+                elif values['-base-'] == '':
+                    self.view.display_defined_msg('*Missing Base', 'red')
                 else:
                     coin_data = self.collect_user_input(values)
                     self.add_new_coin_to_exchange(coin_data)
 
-            # Update coins data starts to download
+            # Changes cancel attr. to stop data download
+            if event == '-cancel-':
+                self.cancel = True
+
+            # Downloads coins data starts to download
             if event == '-download_coin-':
                 if not self.__clicked_coin:
                     self.view.display_defined_msg('*Select Coin', 'red')
                 else:
                     self.download_historical_data()
+                    self.__clicked_coin = None
 
-            # User clicks update all button and all data starts to download
-            if event == '-update_all-':
-                for coin in self.__clicked_exc.coins:
-                    self.model.download_data(coin)
-                self.view.update_coin_tbl()
+            # Displays progress of data download
+            if event == '-PROGRESS-':
+                msg = f"Part {values['-PROGRESS-']}: downloaded & saved!\n"
+                self.view.display_msg(msg, 'orange', True)
+
+            # Displays success message after data download finished
+            if event == '-FINISHED-':
+                self.view.display_msg(
+                    '\nDownload successfully completed!..', 'green', True)
+                self.view.update_coin_tbl(self.__clicked_exc)
 
             # User clicks delete button and coin data is deleted
             if event == '-delete_coin-':
@@ -112,12 +126,67 @@ class Controller():
                 else:
                     self.remove_coin_from_exchange()
 
+            # Displays available coins traded in target exchange
+            if event == '-available-coins-':
+                if not self.__clicked_exc:
+                    self.view.display_defined_msg('*Select Exchange', 'red')
+                else:
+                    self.check_available_coins()
+
         self.view.window.close()
 
+    def check_available_coins(self):
+        """Connects exchange API and gets coins traded in the exchange.
+        """
+        try:
+            coins = self.__clicked_exc.provide_available_coins()
+        except ConnectionError as err:
+            self.view.display_err(err)
+        else:
+            self.view.display_msg(
+                f'Available coins:\n{coins}', 'green')
+
     def download_historical_data(self):
-        res = self.model.download_data(self.__clicked_exc, self.__clicked_coin)
-        self.view.display_err(res)
-        self.view.update_coin_tbl(self.__clicked_exc)
+        """Downloads historical coin data from exchange API.
+
+        Uses threading module to manage long function loop.
+        """
+        blocks = self.model.get_download_time_blocks(
+            self.__clicked_exc, self.__clicked_coin)
+        self.view.display_defined_msg(
+            '*Down Start', 'green', f'{len(blocks)} PARTS\n', False)
+        threading.Thread(target=self.__download,
+                         args=(self.__clicked_exc,
+                               self.__clicked_coin,
+                               blocks),
+                         daemon=True).start()
+
+    def __download(self, exc, coin, blocks):
+        """Downloads and saves coin data.
+
+        Args:
+            exc (obj): given exchange
+            coin (obj): given coin
+            blocks (list): time blocks for download request
+        """
+        for part, time in enumerate(blocks):
+            if not self.cancel:
+                try:
+                    data = exc.download_hist_data(coin, time)
+                    self.model.save_downloaded_data(exc, coin, data)
+                    self.view.window.write_event_value('-PROGRESS-', part+1)
+                    sleep(1)
+                except ConnectionError as err:
+                    self.view.display_err(err)
+            else:
+                self.view.display_defined_msg('*Cancelled', 'red')
+                self.model.delete_coin(exc, coin)
+                self.view.update_coin_tbl(exc)
+                break
+        if self.cancel:
+            self.cancel = False
+        else:
+            self.view.window.write_event_value('-FINISHED-', '')
 
     def collect_user_input(self, values):
         """Collects user inputs for new coin.
@@ -129,12 +198,12 @@ class Controller():
             dict: coin data for obj creation
         """
         return {'Name': values['-coin_name-'],
-                'Abbr': values['-abbr-'],
+                'Quote': values['-quote-'],
+                'Base': values['-base-'],
                 'StartDate': self.view.window['-start_date-'].get(),
                 'StartHour': self.view.window['-start_hour-'].get(),
                 'EndDate': self.view.window['-end_date-'].get(),
                 'EndHour': self.view.window['-end_hour-'].get(),
-                'LastUpdate': '-',
                 'Frequency': values['-frequency-input-']}
 
     def remove_coin_from_exchange(self):
@@ -146,14 +215,19 @@ class Controller():
         except OSError as err:
             self.view.display_err(err)
         else:
-            self.view.display_defined_msg('*Coin Deleted',
-                                          'green',
-                                          self.__clicked_coin.name)
+            self.view.display_defined_msg(
+                '*Coin Deleted',
+                'green',
+                self.__clicked_coin.name.upper(),
+                False)
             self.view.update_coin_tbl(self.__clicked_exc)
             self.__clicked_coin = None
 
     def add_new_coin_to_exchange(self, coin_data):
         """Adds user given coin to target exchange.
+
+        Arg:
+            coin_data (dict): data of coin being added 
         """
         try:
             self.model.add_coin(self.__clicked_exc, coin_data)
@@ -162,7 +236,7 @@ class Controller():
         else:
             self.view.display_defined_msg('*Coin Added',
                                           'green',
-                                          coin_data['Name'])
+                                          coin_data['Name'].upper())
             self.view.update_coin_tbl(self.__clicked_exc)
 
     def set_clicked_coin(self, values):
@@ -193,15 +267,6 @@ class Controller():
         new_folder = self.view.pop_up_folder(default_path)
         return new_folder
 
-    def get_download_preferences(self):
-        """Gets new save folder path from user.
-
-        Returns:
-            str: new save folder path
-        """
-        preferences = self.view.pop_up_preferences()
-        return preferences
-
     def change_save_path(self, new_folder):
         """Changes save folder path acc. to user input.
 
@@ -226,7 +291,8 @@ class Controller():
         if error:
             for err in error:
                 self.view.display_err(err[1])
-                self.view.display_msg(f'{err[0]} can not be read!')
+                self.view.display_msg(
+                    f'{err[0]} can not be read!', 'red', True)
 
 
 class Model:
@@ -306,18 +372,77 @@ class Model:
             backend.delete_exc_folder(exc, self.sys.save_path)
         exc.abandon_coin(coin)
 
-    def download_data(self, exc, coin):
-        freq = coin.frequency.split('-')
-        period = freq[0]
-        unit = freq[1]
+    def save_downloaded_data(self, exc, coin, data):
+        """Saves downloaded coin data to csv file.
+
+        Args:
+            exc (obj): given exchange
+            coin (obj): target coin
+            data (list): downloaded coin data
+        """
+        backend.save_data(exc, coin, data, self.sys.save_path)
+
+    def get_download_time_blocks(self, exc, coin):
+        """Creates time spans for data request.
+
+        Args:
+            exc (obj): given exchange
+            coin (obj): given coin 
+
+        Returns:
+            list: time spans for API data request
+        """
+        start_date, end_date = self.__get_date_objects(coin)
+        add = exc.max_API_requests
+        freq = coin.frequency
+        if self.__increase_time(start_date, add, freq) > end_date:
+            return [[start_date, end_date]]
+        else:
+            blocks = []
+            while self.__increase_time(start_date, add+1, freq) < end_date:
+                blocks.append([start_date,
+                               self.__increase_time(start_date, add, freq)])
+                start_date = self.__increase_time(start_date, add+1, freq)
+            blocks.append([start_date, end_date])
+            return blocks
+
+    @ staticmethod
+    def __get_date_objects(coin):
+        """__Converts string date to arrow objects.
+
+        Args:
+            coin (obj): given coin
+
+        Returns:
+            obj : start date, end date 
+        """
         fmt = 'DD-MM-YYYY HH:mm:ss'
         start_date = arrow.get(coin.start_date + ' '+coin.start_hour, fmt)
         end_date = arrow.get(coin.end_date + ' ' + coin.end_hour, fmt)
-        exc.download_hist_data(coin.abbr,
-                               unit,
-                               period,
-                               start_date,
-                               end_date)
+        return start_date, end_date
+
+    @ staticmethod
+    def __increase_time(date, incremental, freq):
+        """Increases date acc. to user preferences.
+
+        Args:
+            date (obj): given date
+            incremental (int): aimned increase in time 
+            freq (str): days, hours, minutes etc... 
+
+        Returns:
+            obj: date increased by incremental value
+        """
+        if freq == 'minutes':
+            return date.shift(minutes=incremental)
+        if freq == 'hours':
+            return date.shift(hours=incremental)
+        if freq == 'days':
+            return date.shift(days=incremental)
+        if freq == 'weeks':
+            return date.shift(weeks=incremental)
+        if freq == 'months':
+            return date.shift(months=incremental)
 
 
 class View:
@@ -362,34 +487,38 @@ class View:
         """
         self.window['-folder-'].update(new_folder)
 
-    def display_msg(self, msg, color):
+    def display_msg(self, msg, color, value=None):
         """Displays given message at output panel on the screen.
 
         Args:
             msg_key (str): short description of pre-defined message
             color (str): desired color of the message
         """
-        msg, value = self.__check_repeating_msg(msg)
+        if not value:
+            msg, value = self.__check_repeating_msg(msg)
         self.window['-output_panel-'].update(msg,
                                              text_color=color,
                                              append=value)
 
-    def display_defined_msg(self, msg_key, color, arg=None):
+    def display_defined_msg(self, msg_key, color, arg=None, append=None):
         """Displays a pre-defined message at output panel on the screen.
 
         Args:
             msg_key (str): short description of pre-defined message
             color (str): desired color of the message
-            arg = additional argument to be displayed
+            arg (str): additional argument to be displayed
                   (default to None)
+            append (str): optional append value
+                        (default to None)
         """
         msg = PredefinedMessages._messages[msg_key]
-        msg, value = self.__check_repeating_msg(msg)
+        if append == None:
+            msg, append = self.__check_repeating_msg(msg)
         self.window['-output_panel-'].update(msg,
                                              text_color=color,
-                                             append=value)
+                                             append=append)
         if arg:
-            self.window['-output_panel-'].update('\n'+arg.upper(),
+            self.window['-output_panel-'].update('\n'+arg,
                                                  append=True)
 
     def display_err(self, err_msg):
@@ -412,8 +541,7 @@ class View:
             exc (obj): user selected exchange
         """
         msg = f'\n{exc.name}\n--------\n' \
-              f'{exc.website}\n--------\n' \
-              f'Avaliable coins:\n{exc.provide_available_coins()}'
+            f'{exc.website}\n--------\n'
         self.window['-output_panel-'].update(msg,
                                              text_color='green',
                                              append=False)
@@ -428,9 +556,9 @@ class View:
             data = [['-', '-', '-', '-', '-']]
         else:
             data = [[coin.name,
-                     coin.abbr,
-                     coin.last_update,
+                     coin.quote+'-'+coin.base,
                      coin.start_date,
+                     coin.end_date,
                      coin.frequency] for coin in exc.coins]
 
         self.window['-coins_table-'].update(data)
@@ -455,7 +583,7 @@ class View:
             msg (str): msg to be displayed
 
         Returns:
-            [list]: msg and append value
+            (list): msg and append value
         """
         if self.__displayed_msg == msg:
             msg = '\n----------------------\n' + msg
