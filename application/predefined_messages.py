@@ -31,7 +31,7 @@ class PredefinedMessages:
         '*Progress':
             'Data downloaded successfully and saved to coin file for below dates:',
         '*Cancelled':
-            'Execution is CANCELLED!',
-        '*Downloaded':
-            'Data download is finished.',
+            'Download was CANCELLED!\n\nRelevant cryptoasset file was deleted!...',
+        '*Down Start':
+            'Historical data will be downloaded in total of:',
     }
