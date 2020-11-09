@@ -23,13 +23,13 @@ class Coin:
         self.start_hour = data['StartHour']
         self.end_date = data['EndDate']
         self.end_hour = data['EndHour']
-        self.last_update = data['LastUpdate']
         self.frequency = data['Frequency'].replace('\n', '')
-        self.file_name = '{}_{}_{}_{}_{}.csv'.format(self.name,
-                                                     self.base,
-                                                     self.frequency,
-                                                     exc.name,
-                                                     self.start_date)
+        self.file_name = '{}_{}_{}_{}_{}_{}.csv'.format(self.name,
+                                                        self.quote,
+                                                        self.base,
+                                                        self.frequency,
+                                                        exc.name,
+                                                        self.start_date)
 
     def __str__(self):
         """Provies readable representation of coin obj.
