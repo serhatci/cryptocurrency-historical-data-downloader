@@ -5,8 +5,6 @@ List of Classes:
 """
 
 import requests
-import arrow
-import json
 from exchange_base_cls import Exchange
 
 
@@ -19,26 +17,20 @@ class Bitpanda(Exchange):
     hist_start_date = '2020-01-01 00:00:00+00:00'
     max_API_requests = 960
     block_time_check = True
-    db_columns = [{'Column Name': 'OpenDate',
-                   'Data Type': 'DATETIMEOFFSET(0)'},
-                  {'Column Name': 'OpenDateMs',
-                   'Data Type': 'BIGINT'},
-                  {'Column Name': 'OpenPrice',
-                   'Data Type': 'FLOAT(24)'},
-                  {'Column Name': 'HighPrice',
+    db_columns = [{'Column Name': 'HighPrice',
                    'Data Type': 'FLOAT(24)'},
                   {'Column Name': 'LowPrice',
                    'Data Type': 'FLOAT(24)'},
+                  {'Column Name': 'OpenPrice',
+                   'Data Type': 'FLOAT(24)'},
                   {'Column Name': 'ClosePrice',
+                   'Data Type': 'FLOAT(24)'},
+                  {'Column Name': 'TotalAmount',
                    'Data Type': 'FLOAT(24)'},
                   {'Column Name': 'Volume',
                    'Data Type': 'FLOAT(24)'},
-                  {'Column Name': 'CloseDateMs',
-                   'Data Type': 'BIGINT'},
-                  {'Column Name': 'TotalAmount',
-                   'Data Type': 'FLOAT(24)'},
-                  {'Column Name': 'LastSequence',
-                   'Data Type': 'BIGINT'}]
+                  {'Column Name': 'Time',
+                   'Data Type': 'DATETIME'}]
     time_col_index = 0
     api_key = None
     secret_key = None
@@ -52,7 +44,7 @@ class Bitpanda(Exchange):
         pass
 
     def provide_available_coins(self):
-        """Connect exchange's API and gets all available coins. 
+        """Connect exchange's API and gets all available coins.
 
         Returns:
             str: all available coins in the exchange
@@ -87,19 +79,25 @@ class Bitpanda(Exchange):
         if not data.status_code == 200:
             msg = f'An error was received from API of {self.name.upper()}:' \
                   f'\n\n{data.text}\n\n' \
-                'You can find more info in below link:' \
-                  f'\nhttps://developers.bitpanda.com/exchange/?python'
+                  'You can find more info in below link:\n' \
+                  'https://developers.bitpanda.com/exchange/?python'
             raise ConnectionError(msg)
         else:
-            return data.json()
+            return self.correct_downloaded_data(data.json())
 
-    def correct_downloaded_data(self, downloaded_data) -> list:
-        """Corrects % modify downloaded data for SQL upload.
+    def correct_downloaded_data(self, downloaded_data):
+        """Corrects & modifies downloaded data for cvs file.
 
         Args:
             downloaded_data (list): downloaded historical data
 
         Returns:
-            list: data for SQL upload 
+            list: data for csv file save
         """
-        pass
+        return [[data['high'],
+                 data['low'],
+                 data['open'],
+                 data['close'],
+                 data['total_amount'],
+                 data['volume'],
+                 data['time']] for data in downloaded_data]
