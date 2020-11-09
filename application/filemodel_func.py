@@ -7,7 +7,7 @@ def get_coin_files(exc, save_path):
     """Provides all coin file paths in a given exchange's folder.
 
     Args:
-        exc_name (str): name of target exchange
+        exc (obj): target exchange
         save_path (str): main save path in OS
 
     Returns:
@@ -20,8 +20,8 @@ def get_coin_files(exc, save_path):
     else:
         all_files = os.listdir(exc_path)
         coin_files = list(filter(lambda x:
-                                 x.count('_') == 4 and
-                                 x.count('-') == 3 and
+                                 x.count('_') == 5 and
+                                 x.count('-') == 2 and
                                  x.find('.csv'), all_files))
         return [os.path.join(exc_path, file) for file in coin_files]
 
@@ -30,7 +30,7 @@ def create_exc_folder(exc, save_path):
     """Creates a directory of exchange in the OS.
 
     Args:
-        exc_name (str): name of target exchange
+        exc (str): target exchange
         save_path (str): main save path in OS
     """
     exc_path = os.path.join(save_path, exc.name)
@@ -55,7 +55,7 @@ def read_file_comment(file_path):
         line = f.readline()
         if not line.startswith('#'):
             raise ValueError(
-                f'{file_path} does not starts with info comment!')
+                f'{file_path} does not starts with info comment!\n\n')
         return line.replace('#', '')
 
 
@@ -73,9 +73,9 @@ def form_new_coin_data(comment):
         coin_data (dict): coin data for object creation
     """
     data = comment.split(' ')
-    if not len(data) == 9:
+    if not len(data) == 8:
         raise ValueError(
-            f'{comment} does not represent correct coin info!')
+            f'{comment} does not represent correct coin info!\n\n')
     return {'Name': data[0],
             'Quote': data[1],
             'Base': data[2],
@@ -83,8 +83,7 @@ def form_new_coin_data(comment):
             'StartHour': data[4],
             'EndDate': data[5],
             'EndHour': data[6],
-            'LastUpdate': data[7],
-            'Frequency': data[8]}
+            'Frequency': data[7]}
 
 
 def create_coin_file(exc, coin, save_path):
@@ -112,18 +111,17 @@ def write_initial_comment(coin, file_path):
     """Creates an info comment for given coin and writes it in coin file.
 
     Args:
-        coin ([type]): [description]
-        file_path ([type]): [description]
+        coin (obj): target coin
+        file_path (str): coin file path in OS
     """
-    comment = '#{} {} {} {} {} {} {} {} {}'.format(coin.name,
-                                                   coin.quote,
-                                                   coin.base,
-                                                   coin.start_date,
-                                                   coin.start_hour,
-                                                   coin.end_date,
-                                                   coin.end_hour,
-                                                   coin.last_update,
-                                                   coin.frequency)
+    comment = '#{} {} {} {} {} {} {} {}'.format(coin.name,
+                                                coin.quote,
+                                                coin.base,
+                                                coin.start_date,
+                                                coin.start_hour,
+                                                coin.end_date,
+                                                coin.end_hour,
+                                                coin.frequency)
     line = '\n#-----------------------------------------------------------'
     with open(file_path, 'w') as f:
         f.write(comment+line)
@@ -133,7 +131,7 @@ def delete_exc_folder(exc, save_path):
     """Deletes given exchange's folder from OS.
 
     Args:
-        exc_name (str): name of target exchange
+        exc (obj): target exchange
         save_path (str): main save path in OS
     """
     exc_path = os.path.join(save_path, exc.name)
@@ -144,7 +142,7 @@ def delete_coin_file(exc, coin, save_path):
     """Deletes given coin's csv file from OS.
 
     Args:
-        exc_name (str): name of exchange possessing coin
+        exc (obj): exchange possessing coin
         coin (obj) : target coin
         save_path (str): main save path in OS
     """
@@ -164,3 +162,18 @@ def create_coin_obj(exc, coin_data):
         obj: new coin
     """
     return Coin(exc, coin_data)
+
+
+def save_data(exc, coin, data, save_path):
+    """Saves downloaded date to coin csv file.
+
+    Args:
+        exc (obj): exchange possessing coin
+        coin (obj) : target coin
+        data (list): downloaded coin data
+        save_path (str): main save path
+    """
+    exc_path = os.path.join(save_path, exc.name)
+    file_path = os.path.join(exc_path, coin.file_name)
+    df = pd.DataFrame(data)
+    df.to_csv(file_path, header=False, index=False, sep=';', mode='a')
