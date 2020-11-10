@@ -3,6 +3,7 @@
     list of classes:
         Coin
     """
+import arrow
 
 
 class Coin:
@@ -19,19 +20,21 @@ class Coin:
         self.name = data['Name']
         self.quote = data['Quote']
         self.base = data['Base']
-        self.start_date = data['StartDate']
-        self.start_hour = data['StartHour']
-        self.end_date = data['EndDate']
-        self.end_hour = data['EndHour']
+        self.start_date = arrow.get(
+            f"{data['StartDate']} {data['StartHour']}",
+            'DD-MM-YYYY hh:mm:ss')
+        self.end_date = arrow.get(
+            f"{data['EndDate']} {data['EndHour']}",
+            'DD-MM-YYYY hh:mm:ss')
         self.frequency = data['Frequency'].replace('\n', '')
-        self.last_update_date = data['LastUpdateDate']
-        self.last_update_hour = data['LastUpdateHour']
-        self.file_name = '{}_{}_{}_{}_{}_{}.csv'.format(self.name,
-                                                        self.quote,
-                                                        self.base,
-                                                        self.frequency,
-                                                        exc.name,
-                                                        self.start_date)
+        self.last_update = data['LastUpdate']
+        self.file_name = '{}_{}_{}_{}_{}_{}.csv'.format(
+            self.name,
+            self.quote,
+            self.base,
+            self.frequency,
+            exc.name,
+            self.start_date.format('DD-MM-YYYY'))
 
     def __str__(self):
         """Provies readable representation of coin obj.
