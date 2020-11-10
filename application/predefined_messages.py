@@ -28,13 +28,13 @@ class PredefinedMessages:
             'Data file of below cryptoasset could not be found '
             'in saving folder!',
         '*Coin Deleted':
-            'Below cryptoasset has been deleted successfully:',
+            'Below cryptoasset has been deleted:',
         '*Progress':
             'Data downloaded successfully and saved to coin file '
             'for below dates:',
         '*Cancelled':
-            'Download was CANCELLED!\n\n'
-            'Relevant cryptoasset file was deleted!...',
+            '-- Download INTERRUPTED! --\n\n'
+            'You can delete data file if you do not need it anymore...',
         '*Down Start':
             'Historical data will be downloaded in total of:',
         '*Already Downloaded':
