@@ -1,4 +1,5 @@
 import os
+import arrow
 import pandas as pd
 from coin_cls import Coin
 
@@ -38,6 +39,49 @@ def create_exc_folder(exc, save_path):
         os.mkdir(exc_path)
 
 
+def read_last_update_from_file(file_path):
+    with open(file_path) as f:
+        data = f.readlines()
+        if len(data) > 4:
+            last_update = arrow.get(data[-1].split(';')[-1])
+            return [last_update.format('DD-MM-YYYY'),
+                    last_update.format('hh:mm:ss')]
+        else:
+            return ['-', '-']
+
+
+def form_new_coin_data(comment, last_update):
+    """Forms a coin data dictionary from existing file.
+
+    Args:
+        data (str): coin data collected from comment in coin file
+        last_update (list) : latest date and hour received from 
+                             downloaded coin data
+
+    Raises:
+        ValueError: occurs if info comment read from coin file is
+                    in different format than expected
+
+    Returns:
+        coin_data (dict): coin data for object creation
+    """
+    data = comment.split(' ')
+    if not len(data) == 8:
+        raise ValueError(
+            f'Csv file of {data[0]} found in the exchanage folder.\n'
+            'However the file name was not in correct format!\n\n')
+    return {'Name': data[0],
+            'Quote': data[1],
+            'Base': data[2],
+            'StartDate': data[3],
+            'StartHour': data[4].replace('-', ':').strip('.csv'),
+            'EndDate': data[5],
+            'EndHour': data[6],
+            'Frequency': data[7],
+            'LastUpdateDate': last_update[0],
+            'LastUpdateHour': last_update[1]}
+
+
 def read_file_comment(file_path):
     """Reads info comment in a coin file.
 
@@ -57,33 +101,6 @@ def read_file_comment(file_path):
             raise ValueError(
                 f'{file_path} does not starts with info comment!\n\n')
         return line.replace('#', '')
-
-
-def form_new_coin_data(comment):
-    """Forms a coin data dictionary from given comment.
-
-    Args:
-        comment (str): info comment read from coin file
-
-    Raises:
-        ValueError: occurs if info comment is in different
-                    format than expected
-
-    Returns:
-        coin_data (dict): coin data for object creation
-    """
-    data = comment.split(' ')
-    if not len(data) == 8:
-        raise ValueError(
-            f'{comment} does not represent correct coin info!\n\n')
-    return {'Name': data[0],
-            'Quote': data[1],
-            'Base': data[2],
-            'StartDate': data[3],
-            'StartHour': data[4],
-            'EndDate': data[5],
-            'EndHour': data[6],
-            'Frequency': data[7]}
 
 
 def create_coin_file(exc, coin, save_path):
