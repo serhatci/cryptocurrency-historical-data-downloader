@@ -25,13 +25,22 @@ class PredefinedMessages:
         '*Coin Exist':
             'Cryptoasset you are trying to add is already existed!',
         '*Corrupted Coin':
-            'Data file of below cryptoasset could not be found in saving folder!',
+            'Data file of below cryptoasset could not be found '
+            'in saving folder!',
         '*Coin Deleted':
             'Below cryptoasset has been deleted successfully:',
         '*Progress':
-            'Data downloaded successfully and saved to coin file for below dates:',
+            'Data downloaded successfully and saved to coin file '
+            'for below dates:',
         '*Cancelled':
-            'Download was CANCELLED!\n\nRelevant cryptoasset file was deleted!...',
+            'Download was CANCELLED!\n\n'
+            'Relevant cryptoasset file was deleted!...',
         '*Down Start':
             'Historical data will be downloaded in total of:',
+        '*Already Downloaded':
+            'Historical data of selected cryptoasset has already '
+            'been downloaded! \nYou can use UPDATE button if you are '
+            'willing to update data to current time...',
+        '*Already Update':
+            'Historical data of selected cryptoasset is already up to date!'
     }
