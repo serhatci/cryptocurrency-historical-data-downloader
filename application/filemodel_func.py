@@ -40,14 +40,18 @@ def create_exc_folder(exc, save_path):
 
 
 def read_last_update_from_file(file_path):
+    """Reads last date of data downloaded from cin file.
+
+    Args:
+        file_path (str): path of coin file
+
+    Returns:
+        (obj): last date of coin data
+    """
     with open(file_path) as f:
         data = f.readlines()
         if len(data) > 4:
-            last_update = arrow.get(data[-1].split(';')[-1])
-            return [last_update.format('DD-MM-YYYY'),
-                    last_update.format('hh:mm:ss')]
-        else:
-            return ['-', '-']
+            return arrow.get(data[-1].split(';')[-1])
 
 
 def form_new_coin_data(comment, last_update):
@@ -74,12 +78,11 @@ def form_new_coin_data(comment, last_update):
             'Quote': data[1],
             'Base': data[2],
             'StartDate': data[3],
-            'StartHour': data[4].replace('-', ':').strip('.csv'),
+            'StartHour': data[4],
             'EndDate': data[5],
             'EndHour': data[6],
             'Frequency': data[7],
-            'LastUpdateDate': last_update[0],
-            'LastUpdateHour': last_update[1]}
+            'LastUpdate': last_update}
 
 
 def read_file_comment(file_path):
@@ -110,7 +113,7 @@ def create_coin_file(exc, coin, save_path):
         exc (obj): exchange which coin belongs
         coin (obj): target coin
         save_path (str): main save path in OS
-        """
+    """
     headers = [i['Column Name'] for i in exc.db_columns]
     exc_path = os.path.join(save_path, exc.name)
     file_path = os.path.join(exc_path, coin.file_name)
@@ -131,14 +134,13 @@ def write_initial_comment(coin, file_path):
         coin (obj): target coin
         file_path (str): coin file path in OS
     """
-    comment = '#{} {} {} {} {} {} {} {}'.format(coin.name,
-                                                coin.quote,
-                                                coin.base,
-                                                coin.start_date,
-                                                coin.start_hour,
-                                                coin.end_date,
-                                                coin.end_hour,
-                                                coin.frequency)
+    comment = '#{} {} {} {} {} {}'.format(
+        coin.name,
+        coin.quote,
+        coin.base,
+        coin.start_date.format('DD-MM-YYYY hh:mm:ss'),
+        coin.end_date.format('DD-MM-YYYY hh:mm:ss'),
+        coin.frequency)
     line = '\n#-----------------------------------------------------------'
     with open(file_path, 'w') as f:
         f.write(comment+line)
