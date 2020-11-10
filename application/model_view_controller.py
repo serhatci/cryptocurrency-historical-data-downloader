@@ -106,17 +106,18 @@ class Controller():
                     self.view.display_defined_msg('*Select Coin', 'red')
                 else:
                     self.download_historical_data()
-                    self.__clicked_coin = None
 
             # Displays progress of data download
             if event == '-PROGRESS-':
-                msg = f"Part {values['-PROGRESS-']}: downloaded & saved!\n"
+                msg = "Part {} of {}: downloaded & saved!\n".format(
+                    values['-PROGRESS-'][0], values['-PROGRESS-'][1])
                 self.view.display_msg(msg, 'orange', True)
 
             # Displays success message after data download finished
             if event == '-FINISHED-':
                 self.view.display_msg(
-                    '\nDownload successfully completed!..', 'green', True)
+                    '\nDownload completed!...', 'green', True)
+                self.model.set_coins_of_exc(self.__clicked_exc)
                 self.view.update_coin_tbl(self.__clicked_exc)
 
             # User clicks delete button and coin data is deleted
@@ -151,15 +152,61 @@ class Controller():
 
         Uses threading module to manage long function loop.
         """
-        blocks = self.model.get_download_time_blocks(
-            self.__clicked_exc, self.__clicked_coin)
-        self.view.display_defined_msg(
-            '*Down Start', 'green', f'{len(blocks)} PARTS\n', False)
-        threading.Thread(target=self.__download,
-                         args=(self.__clicked_exc,
-                               self.__clicked_coin,
-                               blocks),
-                         daemon=True).start()
+        if self.__clicked_coin.last_update_date == '-':
+            try:
+                blocks = self.__time_blocks(self.__clicked_exc,
+                                            self.__clicked_coin)
+                self.view.display_defined_msg('*Down Start',
+                                              'green',
+                                              f'{len(blocks)} PARTS\n',
+                                              False)
+                threading.Thread(target=self.__download,
+                                 args=(self.__clicked_exc,
+                                       self.__clicked_coin,
+                                       blocks),
+                                 daemon=True).start()
+            except (ValueError, OSError) as err:
+                self.view.display_err(err)
+        else:
+            self.view.display_defined_msg('*Already Downloaded', 'red')
+
+    def __time_blocks(self, exc, coin):
+        """Creates a list including time span for API data request.
+
+        Args:
+            exc (obj): given exchange
+            coin (obj): given coin
+
+        Returns:
+            list: time spans between start and end dates.
+        """
+        cons = {'minutes': 1, 'hours': 60, 'days': 1440,
+                'weeks': 10080, 'months': 40320}
+        int = exc.max_API_requests*cons[coin.frequency]
+        start_date, end_date = self.__get_date_objects(coin)
+        blocks = []
+        if start_date.shift(minutes=int) < end_date:
+            while start_date < end_date:
+                blocks.append(start_date.span('minute', count=int))
+                start_date = start_date.shift(minutes=int)
+        else:
+            blocks.append((start_date, end_date))
+        return blocks
+
+    @ staticmethod
+    def __get_date_objects(coin):
+        """__Converts string date to arrow objects.
+
+        Args:
+            coin (obj): given coin
+
+        Returns:
+            obj : start date, end date
+        """
+        fmt = 'DD-MM-YYYY HH:mm:ss'
+        start_date = arrow.get(f'{coin.start_date} {coin.start_hour}', fmt)
+        end_date = arrow.get(f'{coin.end_date} {coin.end_hour}', fmt)
+        return start_date, end_date
 
     def __download(self, exc, coin, blocks):
         """Downloads and saves coin data.
@@ -174,13 +221,16 @@ class Controller():
                 try:
                     data = exc.download_hist_data(coin, time)
                     self.model.save_downloaded_data(exc, coin, data)
-                    self.view.window.write_event_value('-PROGRESS-', part+1)
-                    sleep(1)
+                    info = (part+1, len(blocks))
+                    self.view.window.write_event_value('-PROGRESS-', info)
+                    sleep(0.5)  # delay for API request not to be banned
                 except ConnectionError as err:
                     self.view.display_err(err)
+                    self.view.update_coin_tbl(exc)
+                    self.cancel = True
+                    break
             else:
                 self.view.display_defined_msg('*Cancelled', 'red')
-                self.model.delete_coin(exc, coin)
                 self.view.update_coin_tbl(exc)
                 break
         if self.cancel:
@@ -204,7 +254,9 @@ class Controller():
                 'StartHour': self.view.window['-start_hour-'].get(),
                 'EndDate': self.view.window['-end_date-'].get(),
                 'EndHour': self.view.window['-end_hour-'].get(),
-                'Frequency': values['-frequency-input-']}
+                'Frequency': values['-frequency-input-'],
+                'LastUpdateDate': '-',
+                'LastUpdateHour': '-'}
 
     def remove_coin_from_exchange(self):
         """Removes clicked coin from target exchange.
@@ -227,7 +279,7 @@ class Controller():
         """Adds user given coin to target exchange.
 
         Arg:
-            coin_data (dict): data of coin being added 
+            coin_data (dict): data of coin being added
         """
         try:
             self.model.add_coin(self.__clicked_exc, coin_data)
@@ -325,7 +377,7 @@ class Model:
         return cls.__exc_list
 
     def set_coins_of_exc(self, exc):
-        """Appends coins found in given exchange's folder to exchange list.
+        """Appends coins existed in OS folder to the given exchange's list.
 
         Args:
             exc (obj): target exchange
@@ -339,8 +391,9 @@ class Model:
         coin_file_paths = backend.get_coin_files(exc, self.sys.save_path)
         for file_path in coin_file_paths:
             try:
+                end_date = backend.read_last_update_from_file(file_path)
                 comment = backend.read_file_comment(file_path)
-                coin_data = backend.form_new_coin_data(comment)
+                coin_data = backend.form_new_coin_data(comment, end_date)
             except (ValueError, OSError) as err:
                 errors.append([file_path, err])
             else:
@@ -382,53 +435,14 @@ class Model:
         """
         backend.save_data(exc, coin, data, self.sys.save_path)
 
-    def get_download_time_blocks(self, exc, coin):
-        """Creates time spans for data request.
-
-        Args:
-            exc (obj): given exchange
-            coin (obj): given coin 
-
-        Returns:
-            list: time spans for API data request
-        """
-        start_date, end_date = self.__get_date_objects(coin)
-        add = exc.max_API_requests
-        freq = coin.frequency
-        if self.__increase_time(start_date, add, freq) > end_date:
-            return [[start_date, end_date]]
-        else:
-            blocks = []
-            while self.__increase_time(start_date, add+1, freq) < end_date:
-                blocks.append([start_date,
-                               self.__increase_time(start_date, add, freq)])
-                start_date = self.__increase_time(start_date, add+1, freq)
-            blocks.append([start_date, end_date])
-            return blocks
-
-    @ staticmethod
-    def __get_date_objects(coin):
-        """__Converts string date to arrow objects.
-
-        Args:
-            coin (obj): given coin
-
-        Returns:
-            obj : start date, end date 
-        """
-        fmt = 'DD-MM-YYYY HH:mm:ss'
-        start_date = arrow.get(coin.start_date + ' '+coin.start_hour, fmt)
-        end_date = arrow.get(coin.end_date + ' ' + coin.end_hour, fmt)
-        return start_date, end_date
-
     @ staticmethod
     def __increase_time(date, incremental, freq):
         """Increases date acc. to user preferences.
 
         Args:
             date (obj): given date
-            incremental (int): aimned increase in time 
-            freq (str): days, hours, minutes etc... 
+            incremental (int): aimned increase in time
+            freq (str): days, hours, minutes etc...
 
         Returns:
             obj: date increased by incremental value
@@ -487,18 +501,20 @@ class View:
         """
         self.window['-folder-'].update(new_folder)
 
-    def display_msg(self, msg, color, value=None):
+    def display_msg(self, msg, color, append=None):
         """Displays given message at output panel on the screen.
 
         Args:
             msg_key (str): short description of pre-defined message
             color (str): desired color of the message
+            append (bool): append variable of update method
+                           (default to None)
         """
-        if not value:
-            msg, value = self.__check_repeating_msg(msg)
+        if not append:
+            msg, append = self.__check_repeating_msg(msg)
         self.window['-output_panel-'].update(msg,
                                              text_color=color,
-                                             append=value)
+                                             append=append)
 
     def display_defined_msg(self, msg_key, color, arg=None, append=None):
         """Displays a pre-defined message at output panel on the screen.
@@ -556,9 +572,9 @@ class View:
             data = [['-', '-', '-', '-', '-']]
         else:
             data = [[coin.name,
-                     coin.quote+'-'+coin.base,
-                     coin.start_date,
-                     coin.end_date,
+                     f'{coin.quote}/{coin.base}',
+                     f'{coin.last_update_date} {coin.last_update_hour}',
+                     f'{coin.start_date} {coin.start_hour}',
                      coin.frequency] for coin in exc.coins]
 
         self.window['-coins_table-'].update(data)
