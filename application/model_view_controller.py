@@ -8,6 +8,7 @@ from screen_layout import Layout
 import arrow
 import threading
 from time import sleep
+from coin_cls import Coin
 
 
 class Controller():
@@ -151,6 +152,9 @@ class Controller():
 
     def check_available_coins(self, exc):
         """Connects exchange API and gets coins traded in the exchange.
+
+        Args:
+            exc (obj): target exchange
         """
         try:
             coins = exc.provide_available_coins()
@@ -164,6 +168,10 @@ class Controller():
         """Downloads historical coin data from exchange API.
 
         Uses threading module to manage long function loop.
+
+        Args:
+            exc (obj): target exchange
+            coin (obj) given coin
         """
         if coin.last_update is not None:
             self.view.display_defined_msg('*Already Downloaded', 'red')
@@ -183,56 +191,6 @@ class Controller():
                                  daemon=True).start()
             except (ValueError, OSError) as err:
                 self.view.display_err(err)
-
-    @staticmethod
-    def __time_blocks(limit, start_date, end_date, freq):
-        """Creates a list including time span for API data request.
-
-        Args:
-            limit (int): maximum API request limit of exchange
-            start_date (obj): given start date
-            end_date (obj): given end date
-            freq (str) : given data download frequency
-
-        Returns:
-            list: time spans between start and end dates.
-        """
-        CONSTANT = {'minutes': 1, 'hours': 60, 'days': 1440,
-                    'weeks': 10080, 'months': 40320}
-        interval = limit*CONSTANT[freq]
-        blocks = []
-        if start_date.shift(minutes=interval) < end_date:
-            while start_date < end_date:
-                blocks.append(start_date.span('minute', count=interval))
-                start_date = start_date.shift(minutes=interval)
-        else:
-            blocks.append((start_date, end_date))
-        return blocks
-
-    def __download(self, exc, coin, blocks):
-        """Downloads and saves coin data.
-
-        Args:
-            exc (obj): given exchange
-            coin (obj): given coin
-            blocks (list): time blocks for download request
-        """
-        for part, time in enumerate(blocks):
-            if self.cancel is False:
-                try:
-                    data = exc.download_hist_data(coin, time)
-                    self.model.save_downloaded_data(exc, coin, data)
-                    info = (part+1, len(blocks))
-                    self.view.window.write_event_value('-PROGRESS-', info)
-                    sleep(0.5)  # delay for API request not to be banned
-                except (ConnectionError, OSError, ValueError) as err:
-                    self.view.window.write_event_value('-ERROR-', err)
-                    self.cancel = True
-                    break
-            else:
-                self.view.window.write_event_value('-CANCELLED-', '')
-                break
-        self.view.window.write_event_value('-FINISHED-', '')
 
     def collect_user_input(self, values):
         """Collects user inputs for new coin.
@@ -255,6 +213,10 @@ class Controller():
 
     def remove_coin_from_exchange(self, exc, coin):
         """Removes clicked coin from target exchange.
+
+        Args:
+            exc (obj): target exchange
+            coin (obj): given coin
         """
         try:
             self.model.delete_coin(exc, coin)
@@ -275,7 +237,8 @@ class Controller():
             coin_data (dict): data of coin being added
         """
         try:
-            self.model.add_coin(self.__clicked_exc, coin_data)
+            new_coin = Coin(self.__clicked_exc, coin_data)
+            self.model.add_coin(self.__clicked_exc, new_coin)
         except (FileExistsError, OSError) as err:
             self.view.display_err(err)
         else:
@@ -329,6 +292,9 @@ class Controller():
 
     def show_exchange_info(self, exc):
         """Displays selected exchange info on the screen.
+
+        Args:
+            exc (obj): target exchange
         """
         error = self.model.set_coins_of_exc(exc)
         self.view.display_exc_info(exc)
@@ -339,8 +305,59 @@ class Controller():
                 self.view.display_msg(
                     f'{err[0]} can not be read!', 'red', True)
 
+    @staticmethod
+    def __time_blocks(limit, start_date, end_date, freq):
+        """Creates a list including time span for API data request.
+
+        Args:
+            limit (int): maximum API request limit of exchange
+            start_date (obj): given start date
+            end_date (obj): given end date
+            freq (str) : given data download frequency
+
+        Returns:
+            blocks (list): time spans between start and end dates.
+        """
+        CONSTANT = {'minutes': 1, 'hours': 60, 'days': 1440,
+                    'weeks': 10080, 'months': 40320}
+        interval = limit*CONSTANT[freq]
+        blocks = []
+        if start_date.shift(minutes=interval) < end_date:
+            while start_date < end_date:
+                blocks.append(start_date.span('minute', count=interval))
+                start_date = start_date.shift(minutes=interval)
+        else:
+            blocks.append((start_date, end_date))
+        return blocks
+
+    def __download(self, exc, coin, blocks):
+        """Downloads and saves coin data.
+
+        Args:
+            exc (obj): given exchange
+            coin (obj): given coin
+            blocks (list): time blocks for download request
+        """
+        for part, time in enumerate(blocks):
+            if self.cancel is False:
+                try:
+                    data = exc.download_hist_data(coin, time)
+                    self.model.save_downloaded_data(exc, coin, data)
+                    info = (part+1, len(blocks))
+                    self.view.window.write_event_value('-PROGRESS-', info)
+                    sleep(0.5)  # delay for API request not to be banned
+                except (ConnectionError, OSError, ValueError) as err:
+                    self.view.window.write_event_value('-ERROR-', err)
+                    self.cancel = True
+                    break
+            else:
+                self.view.window.write_event_value('-CANCELLED-', '')
+                break
+        self.view.window.write_event_value('-FINISHED-', '')
+
 
 class Model:
+    setattr()
     """Provides model object of MVC design.
 
     class attr:
@@ -394,14 +411,13 @@ class Model:
                 exc.possess_coin(coin)
         return errors
 
-    def add_coin(self, exc, coin_data):
+    def add_coin(self, exc, new_coin):
         """Adds a coin to the exchange and saves its csv file.
 
         Args:
             exc (obj): selected exchange for coin addition
-            coin (obj): target coin
+            new_coin (obj): new coin will be added to exchange
         """
-        new_coin = backend.create_coin_obj(exc, coin_data)
         backend.create_exc_folder(exc, self.sys.save_path)
         backend.create_coin_file(exc, new_coin, self.sys.save_path)
         exc.possess_coin(new_coin)
@@ -449,7 +465,8 @@ class View:
                                 size=WINDOW_SIZE,
                                 finalize=True)
 
-    def pop_up_folder(self, default_path):
+    @staticmethod
+    def pop_up_folder(default_path):
         """Opens a pop-up window to get new save folder.
 
         Args:
@@ -475,7 +492,7 @@ class View:
         """Displays given message at output panel on the screen.
 
         Args:
-            msg_key (str): short description of pre-defined message
+            msg (str): given message to display
             color (str): desired color of the message
             append (bool): append variable of update method
                            (default to None)
@@ -541,7 +558,7 @@ class View:
         def check(x): return x.format(
             'DD-MM-YYYY hh:mm:ss') if x is not None else '-'
 
-        if exc.coins is None:
+        if exc.coins is []:
             data = [['-', '-', '-', '-', '-']]
         else:
             data = [[coin.name,
@@ -551,17 +568,6 @@ class View:
                      coin.frequency] for coin in exc.coins]
 
         self.window['-coins_table-'].update(data)
-
-    def create_coin_obj(self, values):
-        """Collect user inputs and creates a coin obj
-
-        Args:
-            values (dict): values collected from app window
-
-        Returns:
-            obj: new coin obj
-        """
-        return Coin(self.__clicked_exc, coin_data)
 
     def __check_repeating_msg(self, msg):
         """Checks if msg is already displayed on the screen.
