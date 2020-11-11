@@ -140,13 +140,13 @@ class Controller():
 
             # Displays success message after data download finished
             if event == '-FINISHED-':
-                self.set_coins_of_exchange(self.__clicked_exc)
-                self.view.update_coin_tbl(self.__clicked_exc)
                 if self.cancel is not False:
                     self.cancel = False
                 else:
                     self.view.display_msg(
                         '\nDownload completed!...', 'green', True)
+                self.set_coins_of_exchange(self.__clicked_exc)
+                self.view.update_coin_tbl(self.__clicked_exc)
 
         self.view.window.close()
 
@@ -297,7 +297,9 @@ class Controller():
             exc (obj): target exchange
         """
         self.view.display_exc_info(exc)
-        self.set_coins_of_exchange(exc)
+        error = self.set_coins_of_exchange(exc)
+        for err in error:
+            self.view.display_msg(err, 'orange', True)
         self.view.update_coin_tbl(exc)
 
     def set_coins_of_exchange(self, exc):
@@ -305,14 +307,15 @@ class Controller():
 
         Args:
             exc (obj): target exchange
+
+        return:
+            error (list): errors occurred in setting of exchange coins
         """
         exc.coins = []  # empties exchange coins list
         coin_data, error = self.model.read_coins_data(exc)
         for coin in coin_data:
             exc.possess_coin(Coin(exc, coin))
-        if error is not []:
-            for err in error:
-                self.view.display_msg(err, 'orange', True)
+        return error
 
     @staticmethod
     def __time_blocks(limit, start_date, end_date, freq):
