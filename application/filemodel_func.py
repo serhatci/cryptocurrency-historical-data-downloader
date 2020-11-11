@@ -100,8 +100,9 @@ def read_file_comment(file_path):
     with open(file_path, 'r') as f:
         line = f.readline()
         if not line.startswith('#'):
+            file_name = file_path.split('\\')[2]
             raise ValueError(
-                f'{file_path} does not starts with info comment!\n\n')
+                f"{file_name} does not include coin info comment!\n\n")
         return line.replace('#', '')
 
 
