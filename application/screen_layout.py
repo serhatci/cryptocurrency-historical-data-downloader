@@ -167,7 +167,7 @@ class Layout:
                          [sg.Button('   ADD   ', key='-add_coin-')]]
 
         frame2_layout = [[sg.Text(save_folder,
-                                  size=(52, 3),
+                                  size=(52, 2),
                                   background_color='white',
                                   key='-folder-')],
                          [sg.Button('Change Folder',
