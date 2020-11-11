@@ -469,7 +469,7 @@ class View:
         Args:
             layout (obj): PysimpleGUI layout
         """
-        WINDOW_SIZE = (1000, 540)
+        WINDOW_SIZE = (1000, 560)
         self.window = sg.Window('Crypto-exchanges Data Downloader',
                                 layout,
                                 size=WINDOW_SIZE,
@@ -568,7 +568,7 @@ class View:
         def check(x): return x.format(
             'DD-MM-YYYY hh:mm:ss') if x is not None else '-'
 
-        if exc.coins is []:
+        if not exc.coins:
             data = [['-', '-', '-', '-', '-']]
         else:
             data = [[coin.name,
