@@ -140,7 +140,7 @@ class Controller():
 
             # Displays success message after data download finished
             if event == '-FINISHED-':
-                self.model.set_coins_of_exc(self.__clicked_exc)
+                self.set_coins_of_exchange(self.__clicked_exc)
                 self.view.update_coin_tbl(self.__clicked_exc)
                 if self.cancel is not False:
                     self.cancel = False
@@ -296,14 +296,23 @@ class Controller():
         Args:
             exc (obj): target exchange
         """
-        error = self.model.set_coins_of_exc(exc)
         self.view.display_exc_info(exc)
+        self.set_coins_of_exchange(exc)
         self.view.update_coin_tbl(exc)
-        if error:
+
+    def set_coins_of_exchange(self, exc):
+        """Gets coins of exchange from relevant database and add them to exc.
+
+        Args:
+            exc (obj): target exchange
+        """
+        exc.coins = []  # empties exchange coins list
+        coin_data, error = self.model.read_coins_data(exc)
+        for coin in coin_data:
+            exc.possess_coin(Coin(exc, coin))
+        if error is not []:
             for err in error:
-                self.view.display_err(err[1])
-                self.view.display_msg(
-                    f'{err[0]} can not be read!', 'red', True)
+                self.view.display_msg(err, 'orange', True)
 
     @staticmethod
     def __time_blocks(limit, start_date, end_date, freq):
@@ -357,7 +366,6 @@ class Controller():
 
 
 class Model:
-    setattr()
     """Provides model object of MVC design.
 
     class attr:
@@ -386,18 +394,18 @@ class Model:
         """
         return cls.__exc_list
 
-    def set_coins_of_exc(self, exc):
-        """Appends coins existed in OS folder to the given exchange's list.
+    def read_coins_data(self, exc):
+        """read coin data by reading existed coin files in exchange's folder.
 
         Args:
             exc (obj): target exchange
 
         Returns:
-            error (list): contains file name and errors occurred when reading
-                          a coin file.
+            coins, errors (list,list): coin data and errors occurred 
+                                       when reading coin files.
         """
-        exc.coins = []  # empties exchange coins list
         errors = []
+        coins = []
         coin_file_paths = backend.get_coin_files(exc, self.sys.save_path)
         for file_path in coin_file_paths:
             try:
@@ -405,11 +413,10 @@ class Model:
                 comment = backend.read_file_comment(file_path)
                 coin_data = backend.form_new_coin_data(comment, end_date)
             except (ValueError, OSError) as err:
-                errors.append([file_path, err])
+                errors.append(err)
             else:
-                coin = backend.create_coin_obj(exc, coin_data)
-                exc.possess_coin(coin)
-        return errors
+                coins.append(coin_data)
+        return coins, errors
 
     def add_coin(self, exc, new_coin):
         """Adds a coin to the exchange and saves its csv file.
