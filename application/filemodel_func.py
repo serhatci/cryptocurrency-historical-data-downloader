@@ -1,7 +1,6 @@
 import os
 import arrow
 import pandas as pd
-from coin_cls import Coin
 
 
 def get_coin_files(exc, save_path):
@@ -168,19 +167,6 @@ def delete_coin_file(exc, coin, save_path):
     exc_path = os.path.join(save_path, exc.name)
     file_path = os.path.join(exc_path, coin.file_name)
     os.remove(file_path)
-
-
-def create_coin_obj(exc, coin_data):
-    """Creates a coin obj from coin data
-
-    Args:
-        exc (obj): exchange possessing coin
-        coin_data (list): data of coin
-
-    Returns:
-        obj: new coin
-    """
-    return Coin(exc, coin_data)
 
 
 def save_data(exc, coin, data, save_path):
