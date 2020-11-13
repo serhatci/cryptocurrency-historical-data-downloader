@@ -1,14 +1,15 @@
+import re
+import threading
+from time import sleep
+import arrow
 import PySimpleGUI as sg  # GUI framework library
 import filemodel_func as backend
+from coin_cls import Coin
 from config_cls import Config
 from exchange_base_cls import Exchange
 from exchange_classes import *
 from predefined_messages import PredefinedMessages
 from screen_layout import Layout
-import arrow
-import threading
-from time import sleep
-from coin_cls import Coin
 
 
 class Controller():
@@ -87,15 +88,13 @@ class Controller():
             if event == '-add_coin-':
                 if self.__clicked_exc is None:
                     self.view.display_defined_msg('*Select Exchange', 'red')
-                elif values['-coin_name-'] == '':
-                    self.view.display_defined_msg('*Missing Name', 'red')
-                elif values['-quote-'] == '':
-                    self.view.display_defined_msg('*Missing Quote', 'red')
-                elif values['-base-'] == '':
-                    self.view.display_defined_msg('*Missing Base', 'red')
                 else:
                     coin_data = self.collect_user_input(values)
-                    self.add_new_coin_to_exchange(coin_data)
+                    if (self.__input_error(coin_data['Name'],
+                                           coin_data['Quote'],
+                                           coin_data['Base']) is False and
+                            self.__date_error(coin_data) is False):
+                        self.add_new_coin_to_exchange(coin_data)
 
             # Changes cancel attr. to stop data download
             if event == '-cancel-':
@@ -149,6 +148,53 @@ class Controller():
                 self.view.update_coin_tbl(self.__clicked_exc)
 
         self.view.window.close()
+
+    def __date_error(self, coin):
+        """Checks if there is error in date inputs.
+
+        Args:
+            coin (dict): user given coin data
+
+        Returns:
+            [bool]: return True if there is an error in inputs
+        """
+        try:
+            fmt = 'DD-MM-YYYY hh:mm:ss'
+            start = arrow.get(
+                f"{coin['StartDate']} {coin['StartHour']}", fmt)
+            end = arrow.get(
+                f"{coin['EndDate']} {coin['EndHour']}", fmt)
+        except ValueError:
+            self.view.display_defined_msg('*Format Err', 'red')
+            return True
+        else:
+            if not start < end:
+                self.view.display_defined_msg('*Date Err', 'red')
+                return True
+            else:
+                return False
+
+    def __input_error(self, name, quote, base):
+        """Checks if the inputs are correct for further execution.
+
+        Args:
+            name (str): coin name
+            quote (str): quoate coin abbreviation
+            base (str): base coin abbreviation
+
+        return:
+            (bool): return True if there is an error in inputs
+        """
+        def check(x): return True if (
+            x == '' or bool(re.search("[^a-zA-Z0-9\s]+", x))) else False
+        val_err = False
+        if check(name) is True:
+            self.view.display_defined_msg('*Name Err', 'red')
+            val_err = True
+        elif (check(quote) or check(base)) is True:
+            self.view.display_defined_msg('*Quote-Base Err', 'red', '', False)
+            val_err = True
+        return val_err
 
     def check_available_coins(self, exc):
         """Connects exchange API and gets coins traded in the exchange.
@@ -317,7 +363,7 @@ class Controller():
             exc.possess_coin(Coin(exc, coin))
         return error
 
-    @staticmethod
+    @ staticmethod
     def __time_blocks(limit, start_date, end_date, freq):
         """Creates a list including time span for API data request.
 
@@ -404,7 +450,7 @@ class Model:
             exc (obj): target exchange
 
         Returns:
-            coins, errors (list,list): coin data and errors occurred 
+            coins, errors (list,list): coin data and errors occurred
                                        when reading coin files.
         """
         errors = []
@@ -475,7 +521,7 @@ class View:
                                 size=WINDOW_SIZE,
                                 finalize=True)
 
-    @staticmethod
+    @ staticmethod
     def pop_up_folder(default_path):
         """Opens a pop-up window to get new save folder.
 
@@ -513,7 +559,7 @@ class View:
                                              text_color=color,
                                              append=append)
 
-    def display_defined_msg(self, msg_key, color, arg=None, append=None):
+    def display_defined_msg(self, msg_key, color, arg=None, append=False):
         """Displays a pre-defined message at output panel on the screen.
 
         Args:
@@ -525,7 +571,7 @@ class View:
                         (default to None)
         """
         msg = PredefinedMessages._messages[msg_key]
-        if append is None:
+        if append is False:
             msg, append = self.__check_repeating_msg(msg)
         self.window['-output_panel-'].update(msg,
                                              text_color=color,
@@ -563,7 +609,7 @@ class View:
         """Updates coins table acc. to exchange' possessed coins.
 
         Args:
-            exc (obj): given exchange 
+            exc (obj): given exchange
         """
         def check(x): return x.format(
             'DD-MM-YYYY hh:mm:ss') if x is not None else '-'
