@@ -1,6 +1,9 @@
 # config file
 config.ini
 
+# workflow directory
+.github/
+
 # vscode settings
 .vscode/
 

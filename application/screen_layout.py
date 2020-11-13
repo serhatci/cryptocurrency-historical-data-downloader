@@ -23,8 +23,8 @@ class Layout:
     """
 
     @classmethod
-    def create(cls, exc_list, save_folder,
-               start_date, start_hour):
+    def create(cls, exc_list, save_folder, start_date,
+               start_hour, end_date, end_hour):
         """Creates screen layout.
 
         Args:
@@ -32,6 +32,8 @@ class Layout:
             save_folder (str): default path of save folder
             start_date (str): default start date
             start_hour (str): default start hour
+            end_date (str): default end date
+            end_hour (str): default end hour
 
         Returns:
             list: screen Layout
@@ -43,7 +45,9 @@ class Layout:
                            vertical_alignment='top'),
                  sg.Column(cls.__col2_layout(save_folder,
                                              start_date,
-                                             start_hour))]]
+                                             start_hour,
+                                             end_date,
+                                             end_hour))]]
 
     @staticmethod
     def __col1_layout(exc_list):
@@ -67,7 +71,7 @@ class Layout:
                           justification='left',
                           background_color='white',
                           row_height=30,
-                          def_col_width=20,
+                          def_col_width=14,
                           auto_size_columns=False,
                           num_rows=table_rows,
                           enable_events=True,
@@ -75,7 +79,8 @@ class Layout:
                           key='-exchanges_table-')]]
 
     @classmethod
-    def __col2_layout(cls, save_folder, start_date, start_hour):
+    def __col2_layout(cls, save_folder, start_date, start_hour,
+                      end_date, end_hour):
         """Creates layout of column2.
 
         Returns:
@@ -83,11 +88,12 @@ class Layout:
         """
 
         return [[sg.Text('Select Cryptocurrency')],
-                [sg.Table([['', '', '', '']],
+                [sg.Table([['', '', '', '', '']],
                           headings=[' Cryptocurrency ',
-                                    ' Abbreviation ',
-                                    '      Last Update      ',
-                                    '      Start Date       '],
+                                    ' Trade Pair ',
+                                    '    Last Update      ',
+                                    '     Start Date      ',
+                                    '   Frequency   '],
                           justification='center',
                           row_height=30,
                           num_rows=5,
@@ -97,12 +103,15 @@ class Layout:
                           text_color='Black')],
                 [sg.Column(cls.__col2_bot_left_layout(save_folder,
                                                       start_date,
-                                                      start_hour),
+                                                      start_hour,
+                                                      end_date,
+                                                      end_hour),
                            vertical_alignment='top'),
                  sg.Column(cls.__col2_bot_right_layout())]]
 
     @staticmethod
-    def __col2_bot_left_layout(save_folder, start_date, start_hour):
+    def __col2_bot_left_layout(save_folder, start_date, start_hour,
+                               end_date, end_hour):
         """Creates layout of bottom left of column2.
 
         Returns:
@@ -110,46 +119,72 @@ class Layout:
         """
 
         frame1_layout = [[sg.Text('Coin Name:'),
-                          sg.Input('', size=(34, 1),
-                                   key='-coin_name-')],
-                         [sg.Text('Coin Abbreviation:'),
-                          sg.Input('', size=(29, 1),
-                                   key='-abbr-')],
-                         [sg.Text('Start Date:'),
-                          sg.Text(start_date,
-                                  key='-start_date-',
-                                  text_color="green"),
-                          sg.Text(start_hour,
-                                  key='-start_hour-',
-                                  text_color="green"),
-                          sg.Text('UTC', key='-utc-',
-                                  text_color="green"),
+                          sg.Input('', size=(26, 1),
+                                   key='-coin_name-'),
+                          sg.Button(' AVAILABLE COINS? ',
+                                    key='-available-coins-')],
+                         [sg.Text('Quote Coin:'),
+                          sg.Input('BTC, ETH etc...', size=(17, 1),
+                                   key='-quote-'),
+                          sg.Text('Base Coin:'),
+                          sg.Input('USD, EUR etc...', size=(17, 1),
+                                   key='-base-')],
+                         [sg.Text('Start Date: '),
+                          sg.Input(start_date,
+                                   key='-start_date-',
+                                   size=(10, 1)),
+                          sg.Input(start_hour,
+                                   key='-start_hour-',
+                                   size=(8, 1)),
+                          sg.Text('UTC', text_color='green'),
                           sg.CalendarButton('Calendar',
                                             target='-start_date-',
                                             pad=None,
                                             key='-calendar-',
                                             format=('%d-%m-%Y'))],
-                         [sg.Button('ADD', key='-add_coin-')]]
+                         [sg.Text('End  Date: '),
+                          sg.Input(end_date,
+                                   key='-end_date-',
+                                   size=(10, 1)),
+                          sg.Input(end_hour,
+                                   key='-end_hour-',
+                                   size=(8, 1)),
+                          sg.Text('UTC', text_color='green'),
+                          sg.CalendarButton('Calendar',
+                                            target='-end_date-',
+                                            pad=None,
+                                            key='-calendar-',
+                                            format=('%d-%m-%Y'))],
+                         [sg.Text('Data frequency: '),
+                          sg.InputCombo(('minutes',
+                                         'hours',
+                                         'days',
+                                         'weeks',
+                                         'months'),
+                                        default_value='days',
+                                        key='-frequency-input-',
+                                        size=(15, 1))],
+                         [sg.Button('   ADD   ', key='-add_coin-')]]
 
         frame2_layout = [[sg.Text(save_folder,
-                                  size=(40, 3),
+                                  size=(52, 2),
                                   background_color='white',
                                   key='-folder-')],
                          [sg.Button('Change Folder',
                                     key='-change_folder-')]]
 
-        return [[sg.Button('DOWNLOAD',
-                           pad=((4, 14), (8, 1)),
-                           size=(12, 1),
+        return [[sg.Button('DOWNLOAD COIN',
+                           pad=((4, 8), (8, 1)),
+                           size=(17, 1),
                            key='-download_coin-'),
-                 sg.Button('UPDATE ALL',
-                           pad=((0, 14), (8, 1)),
-                           size=(12, 1),
-                           button_color=('white', 'green'),
-                           key='-update_all-'),
-                 sg.Button('DELETE',
+                 sg.Button('CANCEL',
+                           pad=((0, 75), (8, 1)),
+                           size=(10, 1),
+                           button_color=('white', 'orange'),
+                           key='-cancel-'),
+                 sg.Button('DELETE COIN',
                            pad=((0, 0), (8, 1)),
-                           size=(12, 1),
+                           size=(14, 1),
                            button_color=('white', 'red'),
                            key='-delete_coin-')],
                 [sg.Frame('ADD NEW COIN',
@@ -168,7 +203,7 @@ class Layout:
         """
 
         frame_layout = [[sg.Multiline(default_text='',
-                                      size=(44, 15),
+                                      size=(42, 18),
                                       autoscroll=True,
                                       disabled=True,
                                       key='-output_panel-',
