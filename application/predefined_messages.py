@@ -46,7 +46,7 @@ class PredefinedMessages:
             'Base or Quote coin should be an abbreviation such as '
             'USD, EUR, GBP or BTC, ETH, XRP etc.\n\n'
             'Abbreviations can differ from exchange to exchange. '
-            'Please be sure you use right abbreviation for the relevant '
+            'Please be sure to use right abbreviation for the relevant '
             'exchange!',
         '*Format Err':
             'Input format of DATE or HOUR is wrong!\n\nDate and hour '
