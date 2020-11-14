@@ -79,7 +79,7 @@ class Controller():
             if event == '-coins_table-':
                 if self.__clicked_exc is None:
                     self.view.display_defined_msg('*Select Exchange', 'red')
-                if self.__clicked_exc.coins is None:
+                elif not self.__clicked_exc.coins:
                     self.view.display_defined_msg('*No Coin', 'red')
                 else:
                     self.set_clicked_coin(values)
