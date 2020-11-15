@@ -50,7 +50,7 @@ def read_last_update_from_file(file_path):
     with open(file_path) as f:
         data = f.readlines()
         if len(data) > 4:
-            return arrow.get(data[-1].split(';')[-1])
+            return arrow.get(data[-1].split(';')[0])
 
 
 def form_new_coin_data(comment, last_update):
