@@ -10,6 +10,7 @@ from exchange_base_cls import Exchange
 from exchange_classes import *
 from predefined_messages import PredefinedMessages
 from screen_layout import Layout
+from datetime import timedelta
 
 
 class Controller():
@@ -159,7 +160,7 @@ class Controller():
             [bool]: return True if there is an error in inputs
         """
         try:
-            fmt = 'DD-MM-YYYY hh:mm:ss'
+            fmt = 'DD-MM-YYYY HH:mm:ss'
             start = arrow.get(
                 f"{coin['StartDate']} {coin['StartHour']}", fmt)
             end = arrow.get(
@@ -376,14 +377,24 @@ class Controller():
         Returns:
             blocks (list): time spans between start and end dates.
         """
-        CONSTANT = {'minutes': 1, 'hours': 60, 'days': 1440,
-                    'weeks': 10080, 'months': 40320}
-        interval = limit*CONSTANT[freq]
+        def select(freq):
+            if freq == 'minutes':
+                return timedelta(minutes=1)
+            if freq == 'hours':
+                return timedelta(hours=1)
+            if freq == 'days':
+                return timedelta(days=1)
+            if freq == 'weeks':
+                return timedelta(weeks=1)
+            if freq == 'months':
+                return timedelta(weeks=4)
+        interval = select(freq)*limit
         blocks = []
-        if start_date.shift(minutes=interval) < end_date:
+        if (start_date+interval) < end_date:
             while start_date < end_date:
-                blocks.append(start_date.span('minute', count=interval))
-                start_date = start_date.shift(minutes=interval)
+                blocks.append(
+                    [start_date, start_date+interval])
+                start_date = start_date+interval
         else:
             blocks.append((start_date, end_date))
         return blocks
@@ -612,7 +623,7 @@ class View:
             exc (obj): given exchange
         """
         def check(x): return x.format(
-            'DD-MM-YYYY hh:mm:ss') if x is not None else '-'
+            'DD-MM-YYYY HH:mm:ss') if x is not None else '-'
 
         if not exc.coins:
             data = [['-', '-', '-', '-', '-']]
@@ -620,7 +631,7 @@ class View:
             data = [[coin.name,
                      f'{coin.quote}/{coin.base}',
                      check(coin.last_update),
-                     coin.start_date.format('DD-MM-YYYY hh:mm:ss'),
+                     coin.start_date.format('DD-MM-YYYY HH:mm:ss'),
                      coin.frequency] for coin in exc.coins]
 
         self.window['-coins_table-'].update(data)
