@@ -22,10 +22,10 @@ class Coin:
         self.base = data['Base']
         self.start_date = arrow.get(
             f"{data['StartDate']} {data['StartHour']}",
-            'DD-MM-YYYY hh:mm:ss')
+            'DD-MM-YYYY HH:mm:ss')
         self.end_date = arrow.get(
             f"{data['EndDate']} {data['EndHour']}",
-            'DD-MM-YYYY hh:mm:ss')
+            'DD-MM-YYYY HH:mm:ss')
         self.frequency = data['Frequency'].replace('\n', '')
         self.last_update = data['LastUpdate']
         self.file_name = '{}_{}_{}_{}_{}_{}.csv'.format(
