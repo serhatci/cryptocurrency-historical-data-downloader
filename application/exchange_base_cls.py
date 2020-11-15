@@ -146,18 +146,6 @@ class Exchange(ABC):
 
     @ property
     @ abstractmethod
-    def time_col_index(self) -> int:
-        """Index number of time column in downloaded data
-
-        Index of time column is different in each crypto
-        exchnage's provided historical data. I should be
-        predefined to create consistent SQL tables for each
-        crypto exchange.
-        """
-        raise NotImplementedError
-
-    @ property
-    @ abstractmethod
     def api_key(self) -> str:
         """API key of crypto exchange.
         """
