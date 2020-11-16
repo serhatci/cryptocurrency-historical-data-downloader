@@ -155,7 +155,7 @@ class Layout:
                                             pad=None,
                                             key='-calendar-',
                                             format=('%d-%m-%Y'))],
-                         [sg.Text('Data frequency: '),
+                         [sg.Text('Frequency/Resolution/Granularity: '),
                           sg.InputCombo(('minutes',
                                          'hours',
                                          'days',
