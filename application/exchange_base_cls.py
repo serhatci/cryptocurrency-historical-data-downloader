@@ -98,6 +98,13 @@ class Exchange(ABC):
 
     @ property
     @ abstractmethod
+    def api_website(self) -> str:
+        """API Website link of crypto-exchange.
+        """
+        raise NotImplementedError
+
+    @ property
+    @ abstractmethod
     def max_API_requests(self):
         r"""Maximum allowable number of API requests and period.
 
@@ -137,6 +144,21 @@ class Exchange(ABC):
             'Historical rate data can be sometimes incomplete! ' \
             'Exchanges do not always guarantee to provide data ' \
             'for intervals where there are no ticks.'
+
+    @property
+    def err_msg(self, msg) -> str:
+        """Provides format of API connection error messages.
+
+        Args:
+            msg (str): error msg provided by exchange API
+
+        Returns:
+            str: error message  ready to be displayed in application
+        """
+        return f'An error was received from API of {self.name.upper()}:' \
+            f'\n\n{msg}\n\n' \
+            'You can find more info in below link:\n' \
+            f'{self.api_website}'
 
     @ property
     @ abstractmethod
