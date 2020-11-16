@@ -15,6 +15,7 @@ class Bitpanda(Exchange):
 
     name = 'Bitpanda'
     website = 'https://www.bitpanda.com/'
+    api_website = 'https://developers.bitpanda.com/exchange/?python'
     max_API_requests = 900
     api_key = None
     secret_key = None
@@ -35,10 +36,10 @@ class Bitpanda(Exchange):
         """
         headers = {'Accept': 'application/json'}
         try:
-            r = requests.get(
+            data = requests.get(
                 'https://api.exchange.bitpanda.com/public/v1/currencies',
                 headers=headers)
-            return str([coin['code'] for coin in r.json()]).strip('[]')
+            return str([coin['code'] for coin in data.json()]).strip('[]')
         except ConnectionError as err:
             return '\nProblem occurred while connecting to API of ' \
                    f'{self.name.upper()}\n\n{err}'
@@ -60,11 +61,7 @@ class Bitpanda(Exchange):
                                     'to': time[1]},
                             headers=headers)
         if not data.status_code == 200:
-            msg = f'An error was received from API of {self.name.upper()}:' \
-                  f'\n\n{data.text}\n\n' \
-                  'You can find more info in below link:\n' \
-                  'https://developers.bitpanda.com/exchange/?python'
-            raise ConnectionError(msg)
+            raise ConnectionError(self.err_msg(data.text))
         else:
             return self.correct_downloaded_data(data.json())
 
@@ -91,6 +88,7 @@ class Exmo(Exchange):
 
     name = 'Exmo'
     website = 'https://www.exmo.com'
+    api_website = 'https://documenter.getpostman.com/view/10287440/SzYXWKPi'
     max_API_requests = 900
     api_key = None
     secret_key = None
@@ -144,11 +142,7 @@ class Exmo(Exchange):
         try:
             return self.correct_downloaded_data(data.json()['candles'])
         except:
-            msg = f'An error was received from API of {self.name.upper()}:' \
-                  f'\n\n{data.json()}\n\n' \
-                  'You can find more info in below link:\n' \
-                  'https://documenter.getpostman.com/view/10287440/SzYXWKPi'
-            raise ConnectionError(msg)
+            raise ConnectionError(self.err_msg(data.json))
 
     def correct_downloaded_data(self, downloaded_data):
         """Corrects & modifies downloaded data for cvs file.
@@ -174,8 +168,7 @@ class Coinbasepro(Exchange):
 
     name = 'CoinbasePro'
     website = 'https://www.coinbase.com/'
-    hist_start_date = '2020-01-01 00:00:00+00:00'
-    max_API_requests = 250
+    api_website = 'https://docs.pro.coinbase.com/#requests'
     api_key = None
     secret_key = None
 
@@ -228,11 +221,7 @@ class Coinbasepro(Exchange):
             'granularity': gran(coin.frequency),
         })
         if not data.status_code == 200:
-            msg = f'An error was received from API of {self.name.upper()}:' \
-                f'\n\n{data.text}\n\n' \
-                'You can find more info in below link:\n' \
-                'https://docs.pro.coinbase.com/#requests'
-            raise ConnectionError(msg)
+            raise ConnectionError(self.err_msg(data.text))
         else:
             return self.correct_downloaded_data(data.json())
 
