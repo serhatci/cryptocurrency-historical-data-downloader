@@ -124,6 +124,20 @@ class Exchange(ABC):
                 {'Column Name': 'Volume',
                  'Data Type': 'FLOAT(24)'}]
 
+    @property
+    def common_info(self) -> str:
+        """Provides a common info for all exchanges.
+
+        Returns:
+            (str): general info for market data terms of use
+        """
+        return f'By accessing the {self.name.upper()} Market Data API, ' \
+            'you agree to be bound by the Market Data Terms of Use! ' \
+            'Please check its web site for more info...\n--------\n'\
+            'Historical rate data can be sometimes incomplete! ' \
+            'Exchanges do not always guarantee to provide data ' \
+            'for intervals where there are no ticks.'
+
     @ property
     @ abstractmethod
     def api_key(self) -> str:
