@@ -611,7 +611,8 @@ class View:
             exc (obj): user selected exchange
         """
         msg = f'\n{exc.name}\n--------\n' \
-            f'{exc.website}\n--------\n'
+            f'{exc.website}\n--------\n' \
+            f'{exc.common_info}'
         self.window['-output_panel-'].update(msg,
                                              text_color='green',
                                              append=False)
