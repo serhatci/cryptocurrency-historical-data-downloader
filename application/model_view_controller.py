@@ -395,6 +395,7 @@ class Controller():
                 blocks.append(
                     [start_date, start_date+interval])
                 start_date = start_date+interval
+            blocks[-1][1] = end_date
         else:
             blocks.append((start_date, end_date))
         return blocks
