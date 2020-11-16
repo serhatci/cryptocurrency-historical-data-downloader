@@ -4,6 +4,7 @@ List of Classes:
     Bitpanda
     Exmo
     Coinbasepro
+    Bitfinex
 """
 
 import arrow
@@ -174,7 +175,7 @@ class Exmo(Exchange):
 
 
 class Coinbasepro(Exchange):
-    """Creates bitpanda crypto-exchange object
+    """Creates CoinbasePro crypto-exchange object
     """
 
     name = 'CoinbasePro'
@@ -261,4 +262,95 @@ class Coinbasepro(Exchange):
                  data[1],
                  data[3],
                  data[4],
+                 data[5]] for data in reversed(downloaded_data)]
+
+
+class Bitfinex(Exchange):
+    """Creates Bitfinex crypto-exchange object
+    """
+
+    name = 'Bitfinex'
+    website = 'https://www.bitfinex.com'
+    api_website = 'https://docs.bitfinex.com/docs/rest-general'
+    max_API_requests = 10
+    api_key = None
+    secret_key = None
+
+    def connect_API(self) -> None:
+        """Create connection to exchange API
+
+        Returns:
+            object: API connection object
+        """
+        pass
+
+    def provide_available_coins(self):
+        """Connect exchange's API and gets all available coins.
+
+        Returns:
+            str: all available coins in the exchange
+        """
+        try:
+            r = requests.get(
+                'https://api-pub.bitfinex.com/v2/tickers?symbols=ALL')
+            return str([coin[0] for coin in r.json()]).strip('[]')
+        except ConnectionError as err:
+            return '\nProblem occurred while connecting to API of '
+            f'{self.name.upper()}\n\n{err}'
+
+    def download_hist_data(self, coin, time):
+        """Downloads historical data of selected crypto asset.
+
+        Args:
+            coin (obj): given coin
+            time (list): [start date obj,end date obj]
+        """
+        link = f'https://api-pub.bitfinex.com/v2/candles/trade' \
+            f':{self.__gran(coin.frequency)}'\
+            f':t{coin.quote}{coin.base}/hist'
+        data = requests.get(link, params={
+            'limit': 10,
+            'start': time[0].format("x")[:13],  # convert to ms
+            'end': time[1].format("x")[:13],  # convert to ms
+            'sort': '-1'})
+        if not data.status_code == 200:
+            raise ConnectionError(self.err_msg(data.text))
+        else:
+            return self.correct_downloaded_data(data.json())
+
+    @ staticmethod
+    def __gran(freq):
+        """Provides exchange specific granularity.
+
+        Args:
+            freq (str): frequency given by user
+
+        Returns:
+            str: appropriate granularity
+        """
+        if freq == 'minutes':
+            return '1m'
+        if freq == 'hours':
+            return '1h'
+        if freq == 'days':
+            return '1D'
+        if freq == 'weeks':
+            return '7D'
+        if freq == 'months':
+            return '1M'
+
+    def correct_downloaded_data(self, downloaded_data):
+        """Corrects & modifies downloaded data for cvs file.
+
+        Args:
+            downloaded_data (list): downloaded historical data
+
+        Returns:
+            list: data for csv file save
+        """
+        return [[arrow.get(data[0]).format('YYYY-MM-DD HH:mm:ss'),
+                 data[3],
+                 data[4],
+                 data[1],
+                 data[2],
                  data[5]] for data in reversed(downloaded_data)]
