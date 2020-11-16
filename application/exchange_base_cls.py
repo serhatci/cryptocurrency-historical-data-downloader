@@ -98,51 +98,31 @@ class Exchange(ABC):
 
     @ property
     @ abstractmethod
-    def hist_start_date(self) -> str:
-        """Start date of historical data.
-
-        It defines the oldest date in the historical data
-        which will be downloaded. It must be UTC date time.
-
-        Example '2020-01-01 00:00:00+00:00'
-        """
-        raise NotImplementedError
-
-    @ property
-    @ abstractmethod
     def max_API_requests(self):
         r"""Maximum allowable number of API requests and period.
 
         Exchanges have request limits for a period or limited
         number of request. These limits must be defined by this
-        variable. Default is 960 data per request.
+        variable. Default is 900 data per request.
         """
         raise NotImplementedError
 
     @ property
-    @ abstractmethod
-    def block_time_check(self) -> bool:
-        """Defines if block time check is required.
-
-        Some exchanges allow historical data download only
-        by defined periods. In this situations, several
-        request should be made with time blocks instead
-        downloading whole historical data by a single request
-        """
-        raise NotImplementedError
-
-    @ property
-    @ abstractmethod
     def db_columns(self) -> list:
-        """Defines SQL table columns and data types.
-
-        Each crypto exchange provides historical data in
-        different format. Column names and SQL data types
-        must be predefined to create SQL tables.
-
-        Example: [{'Column Name': 'OpenDateMs', 'Data Type': 'BIGINT'}]
+        """Provides database table columns and data types.
         """
-        raise NotImplementedError
+        return [{'Column Name': 'Time',
+                 'Data Type': 'DATETIME'},
+                {'Column Name': 'HighPrice',
+                 'Data Type': 'FLOAT(24)'},
+                {'Column Name': 'LowPrice',
+                 'Data Type': 'FLOAT(24)'},
+                {'Column Name': 'OpenPrice',
+                 'Data Type': 'FLOAT(24)'},
+                {'Column Name': 'ClosePrice',
+                 'Data Type': 'FLOAT(24)'},
+                {'Column Name': 'Volume',
+                 'Data Type': 'FLOAT(24)'}]
 
     @ property
     @ abstractmethod
