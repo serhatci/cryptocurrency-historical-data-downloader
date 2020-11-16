@@ -2,6 +2,8 @@
 
 List of Classes:
     Bitpanda
+    Exmo
+    Coinbasepro
 """
 
 import arrow
@@ -121,28 +123,37 @@ class Exmo(Exchange):
             coin (obj): given coin
             time (list): [start date obj,end date obj]
         """
-        def res(freq):
-            if freq == 'minutes':
-                return '1'
-            if freq == 'hours':
-                return '60'
-            if freq == 'days':
-                return 'D'
-            if freq == 'weeks':
-                return 'W'
-            if freq == 'months':
-                return 'M'
-
         data = requests.get('https://api.exmo.com/v1.1/candles_history', {
             'symbol': f'{coin.quote}_{coin.base}',
-            'resolution': res(coin.frequency),
+            'resolution': self.__resolution(coin.frequency),
             'from': time[0].timestamp,
             'to': time[1].timestamp
         })
         try:
             return self.correct_downloaded_data(data.json()['candles'])
         except:
-            raise ConnectionError(self.err_msg(data.json))
+            raise ConnectionError(self.err_msg(data.text))
+
+    @ staticmethod
+    def __resolution(freq):
+        """Provides exchange specific resolution.
+
+        Args:
+            freq (str): frequency given by user
+
+        Returns:
+            str: appropriate resolution
+        """
+        if freq == 'minutes':
+            return '1'
+        if freq == 'hours':
+            return '60'
+        if freq == 'days':
+            return 'D'
+        if freq == 'weeks':
+            return 'W'
+        if freq == 'months':
+            return 'M'
 
     def correct_downloaded_data(self, downloaded_data):
         """Corrects & modifies downloaded data for cvs file.
@@ -169,6 +180,7 @@ class Coinbasepro(Exchange):
     name = 'CoinbasePro'
     website = 'https://www.coinbase.com/'
     api_website = 'https://docs.pro.coinbase.com/#requests'
+    max_API_requests = 250
     api_key = None
     secret_key = None
 
@@ -201,29 +213,39 @@ class Coinbasepro(Exchange):
             coin (obj): given coin
             time (list): [start date obj,end date obj]
         """
-        def gran(freq):
-            if freq == 'minutes':
-                return '60'
-            if freq == 'hours':
-                return '3600'
-            if freq == 'days':
-                return '86400'
-            if freq == 'weeks':
-                return '604800'
-            if freq == 'months':
-                return '2419200'
 
-        link = f'https://api.pro.coinbase.com/products/' \
-            f'{coin.quote}-{coin.base}/candles'
+        link = f'https://api.pro.coinbase.com/products/'
+        f'{coin.quote}-{coin.base}/candles'
         data = requests.get(link, {
-            'start': time[0].shift(seconds=int(gran(coin.frequency))),
+            'start': time[0].shift(seconds=int(self.__gran(coin.frequency))),
             'end': time[1],
-            'granularity': gran(coin.frequency),
+            'granularity': self.__gran(coin.frequency),
         })
         if not data.status_code == 200:
             raise ConnectionError(self.err_msg(data.text))
         else:
             return self.correct_downloaded_data(data.json())
+
+    @ staticmethod
+    def __gran(freq):
+        """Provides exchange specific granularity.
+
+        Args:
+            freq (str): frequency given by user
+
+        Returns:
+            str: appropriate granularity
+        """
+        if freq == 'minutes':
+            return '60'
+        if freq == 'hours':
+            return '3600'
+        if freq == 'days':
+            return '86400'
+        if freq == 'weeks':
+            return '604800'
+        if freq == 'months':
+            return '2419200'
 
     def correct_downloaded_data(self, downloaded_data):
         """Corrects & modifies downloaded data for cvs file.
