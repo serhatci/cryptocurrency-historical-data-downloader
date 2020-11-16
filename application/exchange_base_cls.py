@@ -145,7 +145,6 @@ class Exchange(ABC):
             'Exchanges do not always guarantee to provide data ' \
             'for intervals where there are no ticks.'
 
-    @property
     def err_msg(self, msg) -> str:
         """Provides format of API connection error messages.
 
