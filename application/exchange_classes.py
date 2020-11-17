@@ -186,6 +186,17 @@ class Coinbasepro(Exchange):
     api_key = None
     secret_key = None
 
+    @property
+    def resolution(self):
+        """Provides data download resolution of exchanges.
+
+        Returns:
+            (tuple): exchange specific API resolutions
+        """
+        return ('minutes',
+                'hours',
+                'days')
+
     def connect_API(self) -> None:
         """Create connection to exchange API
 
@@ -367,6 +378,15 @@ class Kraken(Exchange):
     max_API_requests = 900
     api_key = None
     secret_key = None
+
+    @property
+    def resolution(self):
+        """Provides data download resolution of exchanges.
+
+        Returns:
+            (tuple): exchange specific API resolutions
+        """
+        return ('minutes')
 
     def connect_API(self) -> None:
         """Create connection to exchange API
