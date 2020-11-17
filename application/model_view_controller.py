@@ -118,7 +118,7 @@ class Controller():
                                                    self.__clicked_coin)
 
             # Displays available coins traded in target exchange
-            if event == '-available-coins-':
+            if event == '-available_coins-':
                 if self.__clicked_exc is None:
                     self.view.display_defined_msg('*Select Exchange', 'red')
                 else:
@@ -344,6 +344,7 @@ class Controller():
             exc (obj): target exchange
         """
         self.view.display_exc_info(exc)
+        self.view.set_resolution(exc.resolution)
         error = self.set_coins_of_exchange(exc)
         for err in error:
             self.view.display_msg(err, 'orange', True)
@@ -415,7 +416,7 @@ class Controller():
                     self.model.save_downloaded_data(exc, coin, data)
                     info = (part+1, len(blocks))
                     self.view.window.write_event_value('-PROGRESS-', info)
-                    sleep(0.5)  # delay for API request not to be banned
+                    sleep(0.5)  # delay for request not to be banned by API
                 except (ConnectionError, OSError, ValueError) as err:
                     self.view.window.write_event_value('-ERROR-', err)
                     self.cancel = True
@@ -655,3 +656,11 @@ class View:
         else:
             self.__displayed_msg = msg
             return [msg, False]
+
+    def set_resolution(self, res):
+        """Updates comboinput element values.
+
+        Args:
+            res (tuple): exchange specific resolution data
+        """
+        self.window['-frequency_input-'].update(values=res)
