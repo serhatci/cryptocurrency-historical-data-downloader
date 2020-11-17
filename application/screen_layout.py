@@ -122,7 +122,7 @@ class Layout:
                           sg.Input('', size=(26, 1),
                                    key='-coin_name-'),
                           sg.Button(' AVAILABLE COINS? ',
-                                    key='-available-coins-')],
+                                    key='-available_coins-')],
                          [sg.Text('Quote Coin:'),
                           sg.Input('BTC, ETH etc...', size=(17, 1),
                                    key='-quote-'),
@@ -161,8 +161,8 @@ class Layout:
                                          'days',
                                          'weeks',
                                          'months'),
-                                        default_value='days',
-                                        key='-frequency-input-',
+                                        default_value='minutes',
+                                        key='-frequency_input-',
                                         size=(15, 1))],
                          [sg.Button('   ADD   ', key='-add_coin-')]]
 
