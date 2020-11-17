@@ -138,8 +138,8 @@ def write_initial_comment(coin, file_path):
         coin.name,
         coin.quote,
         coin.base,
-        coin.start_date.format('DD-MM-YYYY hh:mm:ss'),
-        coin.end_date.format('DD-MM-YYYY hh:mm:ss'),
+        coin.start_date.format('DD-MM-YYYY HH:mm:ss'),
+        coin.end_date.format('DD-MM-YYYY HH:mm:ss'),
         coin.frequency)
     line = '\n#-----------------------------------------------------------'
     with open(file_path, 'w') as f:
