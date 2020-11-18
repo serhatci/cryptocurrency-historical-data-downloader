@@ -26,7 +26,7 @@ class PredefinedMessages:
         '*Coin Deleted':
             'Below cryptoasset has been deleted:',
         '*Progress':
-            'Data downloaded successfully and saved to coin file '
+            'Data downloaded successfully and saved to cryptoasset file '
             'for below dates:',
         '*Cancelled':
             '-- Download INTERRUPTED! --\n\n'
@@ -40,8 +40,8 @@ class PredefinedMessages:
         '*Already Update':
             'Historical data of selected cryptoasset is already up to date!',
         '*Name Err':
-            'Coin name can not be empty and must include only numbers or '
-            'letters in ENGLISH Alphabet!',
+            'Cryptoasset name can not be empty and must include only '
+            'numbers or letters in ENGLISH Alphabet!',
         '*Quote-Base Err':
             'Base or Quote coin should be an abbreviation such as '
             'USD, EUR, GBP or BTC, ETH, XRP etc.\n\n'
@@ -52,5 +52,8 @@ class PredefinedMessages:
             'Input format of DATE or HOUR is wrong!\n\nDate and hour '
             'should be given in this format:\n01-01-2020 23:00:00',
         '*Date Err':
-            'Start date can not be later than end date!'
+            'Start date can not be later than end date!',
+        '*No Update':
+            'Cryptoasset data can not be updated since it is not downloaded yet!'
+            '\n\nPlease DOWNLOAD cryptoasset data first.'
     }
