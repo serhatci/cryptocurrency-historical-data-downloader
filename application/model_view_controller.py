@@ -1,8 +1,11 @@
-import re
+import re  # regular expression
 import threading
+from datetime import timedelta
 from time import sleep
-import arrow
+
+import arrow  # datetime management
 import PySimpleGUI as sg  # GUI framework library
+
 import filemodel_func as backend
 from coin_cls import Coin
 from config_cls import Config
@@ -10,7 +13,6 @@ from exchange_base_cls import Exchange
 from exchange_classes import *
 from predefined_messages import PredefinedMessages
 from screen_layout import Layout
-from datetime import timedelta
 
 
 class Controller():
@@ -30,8 +32,8 @@ class Controller():
             __clicked_coin (obj): stores user selected coin at run-time
                                 (Default to None)
         """
-        self.model = Model()
-        self.view = View()
+        self.model = model
+        self.view = view
         self.__clicked_exc = None
         self.__clicked_coin = None
         self.cancel = False
@@ -157,7 +159,7 @@ class Controller():
             coin (dict): user given coin data
 
         Returns:
-            [bool]: return True if there is an error in inputs
+            (bool): return True if there is an error in inputs
         """
         try:
             fmt = 'DD-MM-YYYY HH:mm:ss'
@@ -255,7 +257,7 @@ class Controller():
                 'StartHour': self.view.window['-start_hour-'].get(),
                 'EndDate': self.view.window['-end_date-'].get(),
                 'EndHour': self.view.window['-end_hour-'].get(),
-                'Frequency': values['-frequency-input-'],
+                'Frequency': values['-frequency_input-'],
                 'LastUpdate': None}
 
     def remove_coin_from_exchange(self, exc, coin):
@@ -389,6 +391,7 @@ class Controller():
                 return timedelta(weeks=1)
             if freq == 'months':
                 return timedelta(weeks=4)
+
         interval = select(freq)*limit
         blocks = []
         if (start_date+interval) < end_date:
