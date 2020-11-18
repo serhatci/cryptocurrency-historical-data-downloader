@@ -107,9 +107,22 @@ class Controller():
             if event == '-download_coin-':
                 if self.__clicked_coin is None:
                     self.view.display_defined_msg('*Select Coin', 'red')
+                elif self.__clicked_coin.last_update is not None:
+                    self.view.display_defined_msg(
+                        '*Already Downloaded', 'red')
                 else:
                     self.download_historical_data(self.__clicked_exc,
                                                   self.__clicked_coin)
+
+            # Updates downloaded coin data to present date
+            if event == '-update_coin-':
+                if self.__clicked_coin is None:
+                    self.view.display_defined_msg('*Select Coin', 'red')
+                elif self.__clicked_coin.last_update is None:
+                    self.view.display_defined_msg('*No Update', 'red')
+                else:
+                    self.update_historical_data(self.__clicked_exc,
+                                                self.__clicked_coin)
 
             # User clicks delete button and coin data is deleted
             if event == '-delete_coin-':
@@ -222,24 +235,32 @@ class Controller():
             exc (obj): target exchange
             coin (obj) given coin
         """
-        if coin.last_update is not None:
-            self.view.display_defined_msg('*Already Downloaded', 'red')
-        else:
-            try:
-                blocks = self.__time_blocks(exc.max_API_requests,
-                                            coin.start_date,
-                                            coin.end_date,
-                                            coin.frequency)
-                self.view.display_defined_msg(
-                    '*Down Start',
-                    'green',
-                    f'-----{len(blocks)} PARTS-----\n',
-                    False)
-                threading.Thread(target=self.__download,
-                                 args=(exc, coin, blocks),
-                                 daemon=True).start()
-            except (ValueError, OSError) as err:
-                self.view.display_err(err)
+        try:
+            blocks = self.__time_blocks(exc.max_API_requests,
+                                        coin.start_date,
+                                        coin.end_date,
+                                        coin.frequency)
+            self.view.display_defined_msg(
+                '*Down Start',
+                'green',
+                f'-----{len(blocks)} PARTS-----\n',
+                False)
+            threading.Thread(target=self.__download,
+                             args=(exc, coin, blocks),
+                             daemon=True).start()
+        except (ValueError, OSError) as err:
+            self.view.display_err(err)
+
+    def update_historical_data(self, exc, coin):
+        """Updates downloaded historical data to the present date.
+
+        Args:
+            exc (obj): target exchange
+            coin (obj) given coin
+        """
+        coin.start_date = coin.last_update
+        coin.end_date = arrow.utcnow()
+        self.download_historical_data(exc, coin)
 
     def collect_user_input(self, values):
         """Collects user inputs for new coin.
