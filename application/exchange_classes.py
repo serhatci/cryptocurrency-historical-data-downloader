@@ -5,6 +5,7 @@ List of Classes:
     Exmo
     Coinbasepro
     Bitfinex
+    Kraken
 """
 from time import sleep
 import arrow
@@ -375,7 +376,7 @@ class Kraken(Exchange):
     name = 'Kraken'
     website = 'https://www.kraken.com'
     api_website = 'https://support.kraken.com/hc/en-us/articles/360001491786-API-error-messages'
-    max_API_requests = 900
+    max_API_requests = 120
     api_key = None
     secret_key = None
 
@@ -386,7 +387,7 @@ class Kraken(Exchange):
         Returns:
             (tuple): exchange specific API resolutions
         """
-        return ('minutes')
+        return ('minutes', 'minutes')
 
     def connect_API(self) -> None:
         """Create connection to exchange API
@@ -438,7 +439,7 @@ class Kraken(Exchange):
                 for item in processed_data:
                     final_data.append(item)
                 time[0] = arrow.get(int(data.json()['result']['last'][:10]))
-                sleep(1.5)
+                sleep(2)
 
         return self.correct_downloaded_data(final_data)
 
@@ -460,7 +461,9 @@ class Kraken(Exchange):
             break
         df = pd.DataFrame(result, columns=['price', 'vol', 'time'])
         df['time'] = pd.to_datetime(df['time'])
-        df2 = df.resample('1min', on='time').mean().fillna(0)  # granulates
+        df2 = df.resample('1min', on='time').mean()  # granulates
+        df2['price'] = df2['price'].fillna(method='ffill')  # fill empty prices
+        df2['vol'] = df2['vol'].fillna(0)  # fill empty vol
         df2.reset_index(inplace=True)
         return df2.values.tolist()
 
