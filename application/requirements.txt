@@ -1,0 +1,4 @@
+# Required libraries to install
+arrow
+pandas
+request
