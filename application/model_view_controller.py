@@ -374,7 +374,8 @@ class Controller():
         for err in error:
             self.view.display_msg(err, 'orange', True)
         self.view.update_coin_tbl(exc)
-
+  
+        
     def set_coins_of_exchange(self, exc):
         """Gets coins of exchange from relevant database and add them to exc.
 
@@ -644,6 +645,7 @@ class View:
         self.window['-output_panel-'].update(msg,
                                              text_color='green',
                                              append=False)
+        self.__displayed_msg=None
 
     def update_coin_tbl(self, exc):
         """Updates coins table acc. to exchange' possessed coins.
