@@ -1,3 +1,6 @@
+"""Provides backend functions for the model of MVS design.
+
+"""
 import os
 import arrow
 import pandas as pd
