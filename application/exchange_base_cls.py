@@ -2,10 +2,8 @@
 
     List of classes:
         Exchange
-        Coin
     """
 from abc import ABC, abstractmethod
-from tkinter.constants import SEL
 
 
 class Exchange(ABC):
