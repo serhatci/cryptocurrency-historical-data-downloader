@@ -113,6 +113,7 @@ class Controller():
                 else:
                     self.download_historical_data(self.__clicked_exc,
                                                   self.__clicked_coin)
+                    self.__clicked_coin = None
 
             # Updates downloaded coin data to present date
             if event == '-update_coin-':
@@ -123,6 +124,7 @@ class Controller():
                 else:
                     self.update_historical_data(self.__clicked_exc,
                                                 self.__clicked_coin)
+                    self.__clicked_coin = None
 
             # User clicks delete button and coin data is deleted
             if event == '-delete_coin-':
