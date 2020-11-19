@@ -7,10 +7,10 @@ import arrow  # datetime management
 import PySimpleGUI as sg  # GUI framework library
 
 import filemodel_func as backend
-from coin_cls import Coin
-from config_cls import Config
-from exchange_base_cls import Exchange
-from exchange_classes import *
+from classes.coin_cls import Coin
+from classes.config_cls import Config
+from classes.exchange_base_cls import Exchange
+from classes.exchange_classes import *
 from predefined_messages import PredefinedMessages
 from screen_layout import Layout
 
