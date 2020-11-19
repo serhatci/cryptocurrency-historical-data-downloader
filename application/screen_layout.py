@@ -3,8 +3,7 @@
 List of Classes:
     Layout
 """
-import PySimpleGUI as sg
-from PySimpleGUI.PySimpleGUI import Button   # GUI framework library
+import PySimpleGUI as sg  # GUI framework library
 
 
 class Layout:
