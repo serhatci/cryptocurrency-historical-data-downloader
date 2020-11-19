@@ -448,7 +448,7 @@ class Kraken(Exchange):
         """Granulate the data from seconds to minutes
 
         Arg:
-            data (list): donwloaded data
+            data (list): downloaded data
 
         Return:
             (list): list of granulated data
@@ -461,33 +461,13 @@ class Kraken(Exchange):
             break
         df = pd.DataFrame(result, columns=['price', 'vol', 'time'])
         df['time'] = pd.to_datetime(df['time'])
-        df2 = df.resample('1min', on='time').mean()  # granulates
+        df2 = df.resample('1min', on='time').mean()  # granulates data
         df2['price'] = df2['price'].fillna(method='ffill')  # fill empty prices
         df2['vol'] = df2['vol'].fillna(0)  # fill empty vol
         df2.reset_index(inplace=True)
         return df2.values.tolist()
 
     @ staticmethod
-    def __gran(freq):
-        """Provides exchange specific granularity.
-
-        Args:
-            freq (str): frequency given by user
-
-        Returns:
-            str: appropriate granularity
-        """
-        if freq == 'minutes':
-            return '1'
-        if freq == 'hours':
-            return '60'
-        if freq == 'days':
-            return '1440'
-        if freq == 'weeks':
-            return '10080'
-        if freq == 'months':
-            return '40320'
-
     def correct_downloaded_data(self, downloaded_data):
         """Corrects & modifies downloaded data for cvs file.
 
