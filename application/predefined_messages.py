@@ -1,3 +1,10 @@
+"""Provides a class including pre-defined messages.
+
+    List of classes:
+        PredefinedMesages
+"""
+
+
 class PredefinedMessages:
     """Contains pre-defined messages.
 
