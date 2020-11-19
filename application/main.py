@@ -1,3 +1,5 @@
+"""Executes the application.
+"""
 from model_view_controller import Controller, Model, View
 
 if __name__ == "__main__":
