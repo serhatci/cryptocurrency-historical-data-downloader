@@ -7,7 +7,7 @@ setuptools.setup(
     name="cryptoasset-data-downloader",
     version="0.0.1",
     author="Serhat",
-    author_email="author@example.com",
+    author_email="start.a.huge.foolish.project@gmail.com",
     description="A desktop application to download historical data" +
     "of desired crypto assets by connecting several different" +
     "crypto-exchanges' API",
