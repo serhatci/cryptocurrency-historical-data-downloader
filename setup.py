@@ -5,7 +5,7 @@ import setuptools
 HERE = pathlib.Path(__file__).parent
 
 # The text of the README file
-README = (HERE / "readme.md").read_text()
+README = (HERE / "README.md").read_text()
 
 setuptools.setup(
     name="cryptoasset-data-downloader",
