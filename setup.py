@@ -18,7 +18,7 @@ setuptools.setup(
     long_description=README,
     long_description_content_type="text/markdown",
     url="https://github.com/serhatci/cryptocurrency-historical-data-downloader",
-    packages=setuptools.find_packages(exclude=('tests')),
+    packages=['application'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
