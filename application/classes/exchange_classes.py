@@ -8,10 +8,11 @@ List of Classes:
     Kraken
 """
 from time import sleep
+
 import arrow
-import requests
 import pandas as pd
-from classes.exchange_base_cls import Exchange
+import requests
+from . exchange_base_cls import Exchange
 
 
 class Bitpanda(Exchange):
