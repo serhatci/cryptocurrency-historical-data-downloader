@@ -6,13 +6,13 @@ from time import sleep
 import arrow  # datetime management
 import PySimpleGUI as sg  # GUI framework library
 
-import filemodel_func as backend
-from classes.coin_cls import Coin
-from classes.config_cls import Config
-from classes.exchange_base_cls import Exchange
-from classes.exchange_classes import *
-from predefined_messages import PredefinedMessages
-from screen_layout import Layout
+from . import filemodel_func as backend
+from . classes.coin_cls import Coin
+from . classes.config_cls import Config
+from . classes.exchange_base_cls import Exchange
+from . classes.exchange_classes import *
+from . predefined_messages import PredefinedMessages
+from . screen_layout import Layout
 
 
 class Controller():
