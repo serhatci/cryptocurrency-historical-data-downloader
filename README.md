@@ -6,11 +6,11 @@ Historical data of crypto assets are demanded for different purposes such as inv
 ![Alt text](application.jpg?raw=true "Title")
 
 # Installation
-Application is already installed in PyPI. You can download application by writing below code in your terminal:
+Project is already uploaded in PyPI. You can download application by writing the code below in your terminal:
 
 `pip install cryptoasset-data-downloader`
   
-to execute the application, you can run below code in your terminal:
+to execute the application, you should run below code:
  
  `cryptoasset-data-downloader`
  
