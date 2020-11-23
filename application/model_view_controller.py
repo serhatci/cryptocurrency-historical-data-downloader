@@ -359,7 +359,8 @@ class Controller():
             self.view.display_err(err)
         else:
             self.view.update_folder(new_folder)
-            self.show_exchange_info(self.__clicked_exc)
+            if self.__clicked_exc:
+                self.show_exchange_info(self.__clicked_exc)
             self.view.display_defined_msg('*Folder Changed', 'green')
 
     def show_exchange_info(self, exc):
