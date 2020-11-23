@@ -12,7 +12,8 @@ from time import sleep
 import arrow
 import pandas as pd
 import requests
-from . exchange_base_cls import Exchange
+
+from application.classes.exchange_base_cls import Exchange
 
 
 class Bitpanda(Exchange):
