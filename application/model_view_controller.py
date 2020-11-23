@@ -6,13 +6,13 @@ from time import sleep
 import arrow  # datetime management
 import PySimpleGUI as sg  # GUI framework library
 
-from . import filemodel_func as backend
-from . classes.coin_cls import Coin
-from . classes.config_cls import Config
-from . classes.exchange_base_cls import Exchange
-from . classes.exchange_classes import *
-from . predefined_messages import PredefinedMessages
-from . screen_layout import Layout
+import application.filemodel_func as backend
+from application.classes.coin_cls import Coin
+from application.classes.config_cls import Config
+from application.classes.exchange_base_cls import Exchange
+from application.classes.exchange_classes import *
+from application.predefined_messages import PredefinedMessages
+from application.screen_layout import Layout
 
 
 class Controller():
@@ -374,8 +374,7 @@ class Controller():
         for err in error:
             self.view.display_msg(err, 'orange', True)
         self.view.update_coin_tbl(exc)
-  
-        
+
     def set_coins_of_exchange(self, exc):
         """Gets coins of exchange from relevant database and add them to exc.
 
@@ -645,7 +644,7 @@ class View:
         self.window['-output_panel-'].update(msg,
                                              text_color='green',
                                              append=False)
-        self.__displayed_msg=None
+        self.__displayed_msg = None
 
     def update_coin_tbl(self, exc):
         """Updates coins table acc. to exchange' possessed coins.
