@@ -9,7 +9,7 @@ README = (HERE / "README.md").read_text()
 
 setuptools.setup(
     name="cryptoasset-data-downloader",
-    version="1.0.8",
+    version="1.0.9",
     author="Serhat",
     author_email="start.a.huge.foolish.project@gmail.com",
     description="A desktop application to download historical data " +
