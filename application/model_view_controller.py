@@ -1,3 +1,11 @@
+''' Provides classes of MVC design.
+
+List of Classes:
+    Controller
+    Model
+    View
+'''
+
 import re  # regular expression
 import threading
 from datetime import timedelta
