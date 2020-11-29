@@ -3,14 +3,10 @@
   <p align="center">CoinbasePro | Kraken | Bitpanda | Exmo | Bitfinex</p>
   </p>
   <p align="center">
-    <a href="https://github.com/timgrossmann/InstaPy/blob/master/LICENSE">
-      <img src="https://img.shields.io/github/license/serhatci/cryptocurrency-historical-data-downloader" />
-    </a>
-    </a>
-    <a href="https://www.python.org/">
-    	<img src="https://img.shields.io/badge/built%20with-Python3-red.svg" />
-    </a>
+    <img src="https://img.shields.io/github/license/serhatci/cryptocurrency-historical-data-downloader" /></img>
+   	<img src="https://img.shields.io/badge/built%20with-Python3-red.svg" /></img>
     <img src=https://img.shields.io/pypi/v/cryptoasset-data-downloader></img>
+    <img src=https://www.codefactor.io/repository/github/serhatci/cryptocurrency-historical-data-downloader/badge/main /></img>  
 </p>
 
 ![Application image](https://github.com/serhatci/cryptocurrency-historical-data-downloader/blob/main/application.jpg)
