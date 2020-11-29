@@ -1,10 +1,20 @@
-# Cryptocurrency Historical Data Downloader
-
-A desktop application to download historical data of desired crypto assets by connecting several different crypto-exchanges' API.
-
-Historical data of crypto assets are demanded for different purposes such as investment analysis, academic research, etc. Though the data is most of the time publicly available, it is not always easy to reach it for the people who have less coding skills to connect API of crypto exchanges and download data by making several sequencing requests. Besides, crypto-exchanges mostly have different data formats that must be standardized. This application handles all these processes and stores all downloaded data in to csv files on your OS.
+<p align="center">
+  <h1 align="center">Cryptocurrency Historical Data Downloader</h1>
+  <p align="center">CoinbasePro | Kraken | Bitpanda | Exmo | Bitfinex</p>
+  </p>
+  <p align="center">
+    <a href="https://github.com/timgrossmann/InstaPy/blob/master/LICENSE">
+      <img src="https://img.shields.io/github/license/serhatci/cryptocurrency-historical-data-downloader" />
+    </a>
+    </a>
+    <a href="https://www.python.org/">
+    	<img src="https://img.shields.io/badge/built%20with-Python3-red.svg" />
+    </a>
+</p>
 
 ![Application image](https://github.com/serhatci/cryptocurrency-historical-data-downloader/blob/main/application.jpg)
+
+Historical data of crypto assets are demanded for different purposes such as investment analysis, academic research, etc. Though the data is most of the time publicly available, it is not always easy to reach it for the people who have less coding skills to connect API of crypto exchanges and download data by making several sequencing requests. Besides, crypto-exchanges mostly have different data formats that must be standardized. This application handles all these processes and stores all downloaded data in to csv files on your OS.
 
 # Installation
 
@@ -16,6 +26,20 @@ to execute the application, you should run below code:
 
 `cryptoasset-data-downloader`
 
+---
+
+Alternatively you can clone below repository:  
+`git clone https://github.com/serhatci/cryptocurrency-historical-data-downloader/.git`
+
+install the requirements:  
+`pip install -r requirements.txt`
+
+go to the project directory:  
+`cd application`
+
+and run the application:  
+`python main.py`
+
 # Requirements
 
 Application works in Python version 3.6 or higher! If you would like to run the script without installing from PyPI, you need to install below dependencies:
@@ -26,6 +50,7 @@ pip install requests
 pip install pandas
 pip install PySimpleGUI
 ```
+
 
 # How to use
 
