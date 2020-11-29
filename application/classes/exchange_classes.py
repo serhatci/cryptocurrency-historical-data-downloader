@@ -39,9 +39,9 @@ class Bitpanda(Exchange):
                 'https://api.exchange.bitpanda.com/public/v1/currencies',
                 headers=headers)
             return str([coin['code'] for coin in data.json()]).strip('[]')
-        except ConnectionError as err:
-            return '\nProblem occurred while connecting to API of ' \
-                   f'{self.name.upper()}\n\n{err}'
+        except (ConnectionError, Exception) as err:
+            return f'''\nProblem occurred while connecting to API of {self.name.upper()}
+            \n{err}'''
 
     def download_hist_data(self, coin, time):
         """Downloads historical data of selected crypto asset.
@@ -101,9 +101,9 @@ class Exmo(Exchange):
         try:
             data = requests.get('https://api.exmo.com/v1.1/currency')
             return str(data.json()).strip('[]')
-        except ConnectionError as err:
-            return '\nProblem occurred while connecting to API of '
-            f'{self.name.upper()}\n\n{err}'
+        except (ConnectionError, Exception) as err:
+            return f'''\nProblem occurred while connecting to API of {self.name.upper()}
+            \n{err}'''
 
     def download_hist_data(self, coin, time):
         """Downloads historical data of selected crypto asset.
@@ -194,9 +194,9 @@ class Coinbasepro(Exchange):
             data = requests.get(
                 'https://api.pro.coinbase.com/products')
             return str([coin['id'] for coin in data.json()]).strip('[]')
-        except ConnectionError as err:
-            return '\nProblem occurred while connecting to API of '
-            f'{self.name.upper()}\n\n{err}'
+        except (ConnectionError, Exception) as err:
+            return f'\nProblem occurred while connecting to API of '  \
+                '{self.name.upper()}\n\n{err}'
 
     def download_hist_data(self, coin, time):
         """Downloads historical data of selected crypto asset.
@@ -277,9 +277,9 @@ class Bitfinex(Exchange):
             data = requests.get(
                 'https://api-pub.bitfinex.com/v2/tickers?symbols=ALL')
             return str([coin[0] for coin in data.json()]).strip('[]')
-        except ConnectionError as err:
-            return '\nProblem occurred while connecting to API of '
-            f'{self.name.upper()}\n\n{err}'
+        except (ConnectionError, Exception) as err:
+            return f'\nProblem occurred while connecting to API of ' \
+                '{self.name.upper()}\n\n{err}'
 
     def download_hist_data(self, coin, time):
         """Downloads historical data of selected crypto asset.
@@ -369,9 +369,9 @@ class Kraken(Exchange):
             data = requests.get(
                 'https://api.kraken.com/0/public/AssetPairs')
             return str([coin for coin in data.json()['result']]).strip('[]')
-        except ConnectionError as err:
-            return '\nProblem occurred while connecting to API of '
-            f'{self.name.upper()}\n\n{err}'
+        except Exception as err:
+            return f'''\nProblem occurred while connecting to API of {self.name.upper()}
+            \n{err}'''
 
     def download_hist_data(self, coin, time):
         """Downloads historical data of selected crypto asset.
