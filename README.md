@@ -10,6 +10,7 @@
     <a href="https://www.python.org/">
     	<img src="https://img.shields.io/badge/built%20with-Python3-red.svg" />
     </a>
+    <img src=https://img.shields.io/pypi/v/cryptoasset-data-downloader></img>
 </p>
 
 ![Application image](https://github.com/serhatci/cryptocurrency-historical-data-downloader/blob/main/application.jpg)
@@ -25,20 +26,6 @@ Project is already uploaded in PyPI. You can download application by writing the
 to execute the application, you should run below code:
 
 `cryptoasset-data-downloader`
-
----
-
-Alternatively you can clone below repository:  
-`git clone https://github.com/serhatci/cryptocurrency-historical-data-downloader.git`
-
-install the requirements:  
-`pip install -r requirements.txt`
-
-go to the project directory:  
-`cd application`
-
-and run the application:  
-`python main.py`
 
 # Requirements
 
