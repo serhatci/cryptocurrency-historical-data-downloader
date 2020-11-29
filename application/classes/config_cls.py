@@ -93,9 +93,8 @@ class Config:
             raise NotADirectoryError(
                 f'{new_path} is not a valid directory!'
             )
-        else:
-            cls.__config['SYSTEM']['SaveFolder'] = new_path
-            cls.__write_config_file()
+        cls.__config['SYSTEM']['SaveFolder'] = new_path
+        cls.__write_config_file()
 
     @classmethod
     def __write_config_file(cls):

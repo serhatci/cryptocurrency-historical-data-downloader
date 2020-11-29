@@ -33,9 +33,8 @@ class Exchange(ABC):
         if not cls.__instance:
             cls.__instance = super(Exchange, cls).__new__(cls)
             return cls.__instance
-        else:
-            raise Exception(
-                f'{cls.__instance.name} was already created!..')
+        raise Exception(
+            f'{cls.__instance.name} was already created!..')
 
     def __init__(self):
         """Constructor of Exchange class.

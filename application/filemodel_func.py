@@ -20,13 +20,12 @@ def get_coin_files(exc, save_path):
     exc_path = os.path.join(save_path, exc.name)
     if not os.path.isdir(exc_path):
         return []
-    else:
-        all_files = os.listdir(exc_path)
-        coin_files = list(filter(lambda x:
-                                 x.count('_') == 5 and
-                                 x.count('-') == 2 and
-                                 x.find('.csv'), all_files))
-        return [os.path.join(exc_path, file) for file in coin_files]
+    all_files = os.listdir(exc_path)
+    coin_files = list(filter(lambda x:
+                             x.count('_') == 5 and
+                             x.count('-') == 2 and
+                             x.find('.csv'), all_files))
+    return [os.path.join(exc_path, file) for file in coin_files]
 
 
 def create_exc_folder(exc, save_path):
