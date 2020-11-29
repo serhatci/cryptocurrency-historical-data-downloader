@@ -197,8 +197,7 @@ class Controller():
             if not start < end:
                 self.view.display_defined_msg('*Date Err', 'red')
                 return True
-            else:
-                return False
+            return False
 
     def __input_error(self, name, quote, base):
         """Checks if the inputs are correct for further execution.
@@ -689,9 +688,8 @@ class View:
         if self.__displayed_msg == msg:
             msg = '\n----------------------\n' + msg
             return [msg, True]
-        else:
-            self.__displayed_msg = msg
-            return [msg, False]
+        self.__displayed_msg = msg
+        return [msg, False]
 
     def set_resolution(self, res):
         """Updates comboinput element values.
