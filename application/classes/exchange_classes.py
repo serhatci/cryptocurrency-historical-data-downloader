@@ -27,14 +27,6 @@ class Bitpanda(Exchange):
     api_key = None
     secret_key = None
 
-    def connect_API(self) -> None:
-        """Create connection to exchange API
-
-        Returns:
-            object: API connection object
-        """
-        pass
-
     def provide_available_coins(self):
         """Connect exchange's API and gets all available coins.
 
@@ -99,14 +91,6 @@ class Exmo(Exchange):
     max_API_requests = 900
     api_key = None
     secret_key = None
-
-    def connect_API(self) -> None:
-        """Create connection to exchange API
-
-        Returns:
-            object: API connection object
-        """
-        pass
 
     def provide_available_coins(self):
         """Connect exchange's API and gets all available coins.
@@ -200,14 +184,6 @@ class Coinbasepro(Exchange):
                 'hours',
                 'days')
 
-    def connect_API(self) -> None:
-        """Create connection to exchange API
-
-        Returns:
-            object: API connection object
-        """
-        pass
-
     def provide_available_coins(self):
         """Connect exchange's API and gets all available coins.
 
@@ -290,14 +266,6 @@ class Bitfinex(Exchange):
     max_API_requests = 900
     api_key = None
     secret_key = None
-
-    def connect_API(self) -> None:
-        """Create connection to exchange API
-
-        Returns:
-            object: API connection object
-        """
-        pass
 
     def provide_available_coins(self):
         """Connect exchange's API and gets all available coins.
@@ -390,14 +358,6 @@ class Kraken(Exchange):
             (tuple): exchange specific API resolutions
         """
         return ('minutes', 'minutes')
-
-    def connect_API(self) -> None:
-        """Create connection to exchange API
-
-        Returns:
-            object: API connection object
-        """
-        pass
 
     def provide_available_coins(self):
         """Connect exchange's API and gets all available coins.
