@@ -29,7 +29,7 @@ to execute the application, you should run below code:
 ---
 
 Alternatively you can clone below repository:  
-`git clone https://github.com/serhatci/cryptocurrency-historical-data-downloader/.git`
+`git clone https://github.com/serhatci/cryptocurrency-historical-data-downloader.git`
 
 install the requirements:  
 `pip install -r requirements.txt`
