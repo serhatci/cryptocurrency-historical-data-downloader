@@ -61,8 +61,7 @@ class Bitpanda(Exchange):
                             headers=headers)
         if not data.status_code == 200:
             raise ConnectionError(self.err_msg(data.text))
-        else:
-            return self.correct_downloaded_data(data.json())
+        return self.correct_downloaded_data(data.json())
 
     def correct_downloaded_data(self, downloaded_data):
         """Corrects & modifies downloaded data for cvs file.
@@ -215,8 +214,7 @@ class Coinbasepro(Exchange):
         })
         if not data.status_code == 200:
             raise ConnectionError(self.err_msg(data.text))
-        else:
-            return self.correct_downloaded_data(data.json())
+        return self.correct_downloaded_data(data.json())
 
     @ staticmethod
     def __gran(freq):
@@ -298,8 +296,7 @@ class Bitfinex(Exchange):
             'sort': '1'})
         if not data.status_code == 200:
             raise ConnectionError(self.err_msg(data.text))
-        else:
-            return self.correct_downloaded_data(data.json())
+        return self.correct_downloaded_data(data.json())
 
     @ staticmethod
     def __gran(freq):
@@ -396,26 +393,25 @@ class Kraken(Exchange):
                 'since': time[0].format('X')})
             if not data.status_code == 200 or data.json()['error'] != []:
                 raise ConnectionError(self.err_msg(data.json()['error']))
-            else:
-                processed_data = self.__process_data(data)
-                for item in processed_data:
-                    final_data.append(item)
-                time[0] = arrow.get(int(data.json()['result']['last'][:10]))
-                sleep(2)
+            processed_data = self.__process_data(data)
+            for item in processed_data:
+                final_data.append(item)
+            time[0] = arrow.get(int(data.json()['result']['last'][:10]))
+            sleep(2)
 
         return self.correct_downloaded_data(final_data)
 
     @staticmethod
-    def __process_data(data):
+    def __process_data(downloaded_data):
         """Granulate the data from seconds to minutes
 
         Arg:
-            data (list): downloaded data
+            downloaded_data (list): downloaded data
 
         Return:
             (list): list of granulated data
         """
-        for data in data.json()['result'].values():
+        for data in downloaded_data.json()['result'].values():
             result = [[float(i[0]),
                        float(i[1]),
                        arrow.get(i[2]).format()]
