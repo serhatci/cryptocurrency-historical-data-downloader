@@ -17,7 +17,7 @@ class Config:
 
     __config = configparser.ConfigParser()
 
-    def __init__(self, exc_list):
+    def __init__(self):
         """Constructor of config class.
         """
 
