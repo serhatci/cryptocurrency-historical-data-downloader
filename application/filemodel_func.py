@@ -1,4 +1,4 @@
-"""Provides backend functions for the model of MVS design.
+"""Provides backend functions for the model of MVC design.
 
 """
 import os
@@ -41,7 +41,7 @@ def create_exc_folder(exc, save_path):
 
 
 def read_last_update_from_file(file_path):
-    """Reads last date of data downloaded from cin file.
+    """Reads the last date of data downloaded from coin file.
 
     Args:
         file_path (str): path of coin file
@@ -59,7 +59,7 @@ def form_new_coin_data(comment, last_update):
     """Forms a coin data dictionary from existing file.
 
     Args:
-        data (str): coin data collected from comment in coin file
+        comment (str): info comment written in coin CSV file
         last_update (list) : latest date and hour received from 
                              downloaded coin data
 
@@ -87,7 +87,7 @@ def form_new_coin_data(comment, last_update):
 
 
 def read_file_comment(file_path):
-    """Reads info comment in a coin file.
+    """Reads info comment in a coin CSV file.
 
     Args:
         file_path (str): given coin file path
@@ -109,7 +109,7 @@ def read_file_comment(file_path):
 
 
 def create_coin_file(exc, coin, save_path):
-    """Creates a cvs file for a given coin.
+    """Creates a CSV file for a given coin.
 
     Args:
         exc (obj): exchange which coin belongs
@@ -130,7 +130,7 @@ def create_coin_file(exc, coin, save_path):
 
 
 def write_initial_comment(coin, file_path):
-    """Creates an info comment for given coin and writes it in coin file.
+    """Creates an info comment for given coin and writes it in coin CSV file.
 
     Args:
         coin (obj): target coin
@@ -173,7 +173,7 @@ def delete_coin_file(exc, coin, save_path):
 
 
 def save_data(exc, coin, data, save_path):
-    """Saves downloaded date to coin csv file.
+    """Saves downloaded date information to the coin CSV file.
 
     Args:
         exc (obj): exchange possessing coin
