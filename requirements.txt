@@ -1,5 +1,5 @@
 # Required libraries to install
-arrow
-pandas
-requests
-PySimpleGUI
+arrow~==0.16.0
+pandas~==0.25.1
+requests~==2.22.0
+PySimpleGUI~==4.31.0
