@@ -10,7 +10,8 @@ class PredefinedMessages:
 
     Class Attr:
         __messages [dict]: dictionary of pre-defined messages
-                           which controller can select among them
+                           which can be selected by Controller for display
+                           purposes in case of need
     """
     _messages = {
         '*Select Exchange':

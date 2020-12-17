@@ -39,6 +39,7 @@ class Controller():
                                (Default to None)
             __clicked_coin (obj): stores user selected coin at run-time
                                 (Default to None)
+            cancel (bool): stores state of cancel button
         """
         self.model = model
         self.view = view
@@ -68,6 +69,10 @@ class Controller():
 
     def listen_window(self):
         """Listens the application window and collects user inputs
+
+        This function completely depends on the provided format of 
+        PySimpleGUI framework.
+        see for more: https://pysimplegui.readthedocs.io/en/latest/#jump-start
         """
         while True:
             event, values = self.view.window.read()
@@ -176,7 +181,7 @@ class Controller():
         self.view.window.close()
 
     def __date_error(self, coin):
-        """Checks if there is error in date inputs.
+        """Checks if there is error in the date inputs of user.
 
         Args:
             coin (dict): user given coin data
@@ -204,7 +209,7 @@ class Controller():
 
         Args:
             name (str): coin name
-            quote (str): quoate coin abbreviation
+            quote (str): quote coin abbreviation
             base (str): base coin abbreviation
 
         return:
@@ -222,7 +227,7 @@ class Controller():
         return val_err
 
     def check_available_coins(self, exc):
-        """Connects exchange API and gets coins traded in the exchange.
+        """Connects to exchange API and gets current coins traded.
 
         Args:
             exc (obj): target exchange
@@ -238,7 +243,9 @@ class Controller():
     def download_historical_data(self, exc, coin):
         """Downloads historical coin data from exchange API.
 
-        Uses threading module to manage long function loop.
+        Uses threading module to manage long function loop. Threading behavior
+        is a part of PYsimpleGUI library. see below for more:
+        https://pysimplegui.readthedocs.io/en/latest/
 
         Args:
             exc (obj): target exchange
@@ -291,7 +298,7 @@ class Controller():
                 'LastUpdate': None}
 
     def remove_coin_from_exchange(self, exc, coin):
-        """Removes clicked coin from target exchange.
+        """Removes clicked coin from the target exchange.
 
         Args:
             exc (obj): target exchange
@@ -310,7 +317,7 @@ class Controller():
             self.__clicked_coin = None
 
     def add_new_coin_to_exchange(self, coin_data):
-        """Adds user given coin to target exchange.
+        """Adds user given coin to the target exchange.
 
         Arg:
             coin_data (dict): data of coin being added
@@ -402,6 +409,10 @@ class Controller():
     def __time_blocks(limit, start_date, end_date, freq):
         """Creates a list including time span for API data request.
 
+        API of some exchanges allow requesting limited number of data per time.
+        __time_blocks function creates a bunch of time periods which helps
+        application to downloads all historical data with sequencing requests.   
+
         Args:
             limit (int): maximum API request limit of exchange
             start_date (obj): given start date
@@ -466,7 +477,7 @@ class Model:
 
     class attr:
         __exc_list (list): list of exchange objects
-        __sys (obj) : Object that stores configuration data
+        __sys (obj) : object that stores configuration data
     """
 
     __exc_list = [cls() for cls in Exchange.__subclasses__()]

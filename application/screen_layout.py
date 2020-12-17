@@ -7,7 +7,7 @@ import PySimpleGUI as sg  # GUI framework library
 
 
 class Layout:
-    """Provides a screen layout for the application.
+    """Provides a PYsimpleGUI screen layout for the application.
 
     Screen layout design looks like below:
 
@@ -16,6 +16,9 @@ class Layout:
     |       |--------------------------------|
     |       | col2_bot_left | col2_bot_right |
     |       |               |                |
+
+    see below for more info:
+    https://pysimplegui.readthedocs.io/en/latest/
 
     Returns:
         None
