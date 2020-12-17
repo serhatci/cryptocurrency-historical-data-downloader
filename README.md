@@ -28,12 +28,11 @@ to execute the application, you should run below code:
 Application works in Python version 3.6 or higher! If you would like to run the script without installing from PyPI, you need to install below dependencies:
 
 ```
-pip install arrow
-pip install requests
-pip install pandas
-pip install PySimpleGUI
+pip install arrow==0.16.0
+pip install requests==2.22.0
+pip install pandas==0.25.1
+pip install PySimpleGUI==4.31.0
 ```
-
 
 # How to use
 
