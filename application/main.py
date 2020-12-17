@@ -16,6 +16,8 @@ from application.model_view_controller import Controller, Model, View
 
 
 def run():
+    """Initialize the application.
+    """
     # Instantiate application object
     app = Controller(Model(), View())
 
