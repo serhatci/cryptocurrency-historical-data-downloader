@@ -25,7 +25,8 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
-    install_requires=['pandas', 'arrow', 'requests', 'PySimpleGUI'],
+    install_requires=['pandas==0.25.1',
+                      'arrow==0.16.0', 'requests==2.22.0', 'PySimpleGUI==4.31.0'],
     entry_points={
         "console_scripts": [
             "cryptoasset-data-downloader=application.main:run",
