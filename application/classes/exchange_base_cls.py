@@ -8,33 +8,7 @@ from abc import ABC, abstractmethod
 
 class Exchange(ABC):
     """An abstract base class to create crypto-exchange classes.
-
-    class attr:
-        __instance (obj): keeps instance of Exchange class to
-                          app singleton pattern
-                          (Default to None)
     """
-
-    __instance = None
-
-    def __new__(cls):
-        """Creates only a single instance of class.
-
-        Singleton design pattern.
-
-        Raises:
-            Exception: occurs when a second instance
-                       is tried to be created
-
-        Returns:
-            object: crypto exchage object
-        """
-
-        if not cls.__instance:
-            cls.__instance = super(Exchange, cls).__new__(cls)
-            return cls.__instance
-        raise Exception(
-            f'{cls.__instance.name} was already created!..')
 
     def __init__(self):
         """Constructor of Exchange class.
