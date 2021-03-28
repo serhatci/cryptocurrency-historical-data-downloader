@@ -1,0 +1,175 @@
+@startuml UML DIAGRAM
+Controller *-right- Model
+Controller *-left- View
+Controller *-- Coin
+Model *-- Config
+Model *-right- Exchange
+
+
+Title: UML DIAGRAM Cryptocurrency-historical-data-downloader
+
+class Controller {
+    +model: object
+    +view: object
+    +cancel: boolean
+    -__clicked_exc: object
+    -__clicked_coin: object
+    +start_app()
+    +listen_window()
+    +check_avaliable_coins()
+    +download_historical_data()
+    +update_historical_data()
+    +collect_user_input(): dict
+    +remove_coin_from_exchange()
+    +add_new_coin_to_exchange()
+    +set_clicked_coin()
+    +set_clicked_exchange()
+    +get_new_save_folder(): string
+    +change_save_path()
+    +show_exchange_info()
+    +set_coins_of_exchange(): list
+    -__date_error() : boolean
+    -__input_error(): boolean
+    -__time_blocks(): list
+    -__download()
+}
+
+class Model {
+    -__exc_list: list
+    -__sys: object
+    sys(): string
+    exc_list(): string
+    read_coins_data(): list,list
+    add_coin()
+    delete_coin()
+    save_downloaded_data()
+}
+
+class View {
+    -__displayed_mgs: string
+    start_window()
+    pop_up_folder(): string
+    update_folder()
+    display_msg()
+    display_defined_msg()
+    display_err()
+    display_exc_info()
+    update_coin_tbl()
+    set_resolution()
+    -__check_repeating_msg()
+}
+
+abstract class Exchange {
+    -__coins: List
+    coins(): list
+    possess_coin()
+    abandon_coin()
+    name(): string
+    website(): string
+    api_website(): string
+    max_API_requests(): int
+    db_columns(): list
+    common_info(): string
+    resolution(): tuple
+    err_msg(): string
+    api_key(): string
+    secret_key(): string
+    provide_available_coins(): string
+    download_hist_data(): list
+    correct_downloaded_data(): list
+}
+
+Exchange <|-- Bitpanda
+Exchange <|-- CoinbasePro
+Exchange <|-- Bitfinex
+Exchange <|-- Exmo
+Exchange <|-- Kraken
+
+class Config {
+    - __config: object
+    platform(): string
+    save_path(): string
+    start_date(): string
+    start_hour(): string
+    change_save_path()
+    -__check_config_file()
+    -__create_config_file()
+    -__write_config_file()
+}
+
+class Coin {
+    name: string
+    quote: string
+    base: string
+    start_date: Date
+    end_date: Date
+    frequency: int
+    last_update: Data
+    file_name: string
+    +__str__(): string 
+}
+
+class Bitpanda {
+    name: string
+    website: string
+    api_website:string
+    max_API_requests: integer
+    api_key:string
+    secret_key: string
+    provide_available_coins(): string
+    download_hist_data(): List
+    correct_downloaded_data(): List
+}
+
+class Exmo {
+    name: string
+    website: string
+    api_website:string
+    max_API_requests: integer
+    api_key:string
+    secret_key: string
+    provide_available_coins(): string
+    download_hist_data(): List
+    correct_downloaded_data(): List
+}
+
+class CoinbasePro {
+    name: string
+    website: string
+    api_website:string
+    max_API_requests: integer
+    api_key:string
+    secret_key: string
+    provide_available_coins(): string
+    download_hist_data(): List
+    correct_downloaded_data(): List
+}
+
+class Kraken {
+    name: string
+    website: string
+    api_website:string
+    max_API_requests: integer
+    api_key:string
+    secret_key: string
+    provide_available_coins(): string
+    download_hist_data(): List
+    correct_downloaded_data(): List
+}
+
+class Bitfinex {
+    name: string
+    website: string
+    api_website:string
+    max_API_requests: integer
+    api_key:string
+    secret_key: string
+    provide_available_coins(): string
+    download_hist_data(): List
+    correct_downloaded_data(): List
+}
+
+
+
+
+@enduml
