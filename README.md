@@ -34,6 +34,10 @@ pip install pandas==0.25.1
 pip install PySimpleGUI==4.31.0
 ```
 
+# Uml Diagram
+
+![Application image](https://github.com/serhatci/cryptocurrency-historical-data-downloader/blob/main/uml-diagram.png)
+
 # How to use
 
 Application is pretty straightforward and easy to use. You just need to select a crypto-exchange from the list and provide the name & abbreviation of the crypto asset which you would like to download historical data. It is extremely important to use exactly the same crypto asset abbreviation supported by the selected crypto exchange. By clicking 'available coins?' button, you can learn which crypto assets are being currently supported by the selected crypto exchange.
