@@ -70,7 +70,7 @@ class Controller():
     def listen_window(self):
         """Listens the application window and collects user inputs
 
-        This function completely depends on the provided format of 
+        This function completely depends on the provided format of
         PySimpleGUI framework.
         see for more: https://pysimplegui.readthedocs.io/en/latest/#jump-start
         """
@@ -411,7 +411,7 @@ class Controller():
 
         API of some exchanges allow requesting limited number of data per time.
         __time_blocks function creates a bunch of time periods which helps
-        application to downloads all historical data with sequencing requests.   
+        application to downloads all historical data with sequencing requests.
 
         Args:
             limit (int): maximum API request limit of exchange
@@ -481,7 +481,7 @@ class Model:
     """
 
     __exc_list = [cls() for cls in Exchange.__subclasses__()]
-    __sys = Config(__exc_list)
+    __sys = Config()
 
     @ property
     def sys(cls):
